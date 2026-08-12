@@ -3,7 +3,7 @@ name: verification-gatekeeper
 description: Usar al afirmar o verificar que un bug está arreglado, el código está listo para producción o un hallazgo de auditoría puede cerrarse — cualquier patch, sprint o fix que necesite veredicto defendible PASS/PARTIAL/FAIL/UNVERIFIED con evidencia. Disparadores: ¿está arreglado?, ¿listo para producción?, cerrar bug, verificar fix, verificar corrección, validation gate.
 ---
 
-# VERIFICATION GATEKEEPER PRO v2
+# VERIFICATION GATEKEEPER PRO v3
 
 Estados finales:
 PASS / PARTIAL / FAIL / UNVERIFIED

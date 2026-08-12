@@ -3,7 +3,7 @@ name: nano-repo-surgeon
 description: Usar cuando se audita, diagnostica o corrige cualquier repositorio con QA basada en evidencia — disparadores: auditar, auditoría, QA profundo, buscar bugs, corrección por sprints, clasificar CONFIRMED vs HYPOTHESIS_TO_VALIDATE, BUILD_SUCCESS != CORRECT_RUNTIME, PID_CREATED != READY, PORT_OPEN != PROTOCOL_READY.
 ---
 
-# UNIVERSAL REPOSITORY GUARDIAN PRO v2
+# UNIVERSAL REPOSITORY GUARDIAN PRO v3
 
 ## Misión
 Realizar QA de ingeniería profunda y basada en evidencia sobre cualquier repositorio y transformar los hallazgos en sprints de corrección verificados.
