@@ -247,6 +247,23 @@ def benchmark_fixture_status() -> dict:
 # === END V3 SEMANTIC TOOLS ===
 
 
+# === UNIVERSAL REPO GUARDIAN QUANTITATIVE METRICS ===
+from nano_repo_guardian import metrics as _quant
+
+@mcp.tool()
+def cyclomatic_complexity_report() -> dict:
+    return _quant.cyclomatic_report(ROOT)
+
+@mcp.tool()
+def dependency_graph_metrics() -> dict:
+    return _quant.dependency_graph_metrics(ROOT)
+
+@mcp.tool()
+def quantitative_risk_report() -> dict:
+    return _quant.quantitative_report(ROOT)
+# === END QUANTITATIVE METRICS ===
+
+
 def main():
     mcp.run(transport="stdio")
 

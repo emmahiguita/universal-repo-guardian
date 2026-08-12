@@ -7,7 +7,7 @@ name = "universal-repo-guardian"
 version = "3.0.0"
 description = "QA universal de repositorios, forensia de código e inteligencia adaptativa de bugs con evidencia (MCP)"
 requires-python = ">=3.10"
-dependencies = ["mcp>=1.0.0"]
+dependencies = ["mcp>=1.0.0", "radon>=6", "networkx>=3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

@@ -2,7 +2,7 @@
 
 ![Versión](https://img.shields.io/badge/version-3.0.0-4c1d95)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab)
-![Tests](https://img.shields.io/badge/tests-31%2F31-brightgreen)
+![Tests](https://img.shields.io/badge/tests-43%2F43-brightgreen)
 ![MCP](https://img.shields.io/badge/MCP-server-111827)
 ![Modelo](https://img.shields.io/badge/evidencia-CONFIRMED%2FHYPOTHESIS-059669)
 
@@ -20,7 +20,7 @@
 4. [Modelo de evidencia](#4-modelo-de-evidencia)
 5. [Modelo de seguridad](#5-modelo-de-seguridad)
 6. [Flujo de trabajo](#6-flujo-de-trabajo)
-7. [Herramientas MCP](#7-herramientas-mcp-25)
+7. [Herramientas MCP](#7-herramientas-mcp-28)
 8. [Ejemplos y evidencia](#8-ejemplos-y-evidencia)
 9. [Instalación](#9-instalación)
 10. [Tests](#10-tests)
@@ -151,6 +151,28 @@ flowchart LR
 
 Reglas de veracidad (skills): `NO VERIFICADO`, `REQUIERE PRUEBA DINÁMICA` y `REQUIERE VERIFICACIÓN DE COMPATIBILIDAD` se declaran explícitamente cuando no hay evidencia cerrada.
 
+### 4.1 Análisis cuantitativo (sin números inventados)
+
+Todo número que emite la herramienta declara cómo se obtuvo:
+
+| Naturaleza | Significado | Ejemplo |
+|---|---|---|
+| `MEDIDO` | Leído directamente del código | nº de nodos/aristas, LOC |
+| `CALCULADO` | Fórmula determinística sobre lo medido | ciclomática (McCabe), centralidad, blast radius |
+| `ESTIMADO` | Suma ponderada con pesos razonados | risk score, confidence, function risk |
+| `HEURISTICO` | Patrón aproximado, sujeto a falso positivo | concurrencia, ownership textual, state flags |
+
+Motor cuantitativo (`nano_repo_guardian/metrics.py`):
+
+- **Complejidad ciclomática** — vía `radon` (McCabe) por función, con fallback AST propio. `M = decisiones + 1`.
+- **Grafo de dependencias** — vía `networkx`: indegree/outdegree, centralidad de grado e intermediación, ciclos (SCC), orden topológico y camino crítico.
+- **Blast radius** — fracción del sistema que depende transitivamente de un módulo: `BR = afectados / total`, más versión ponderada por centralidad.
+- **Data flow** — uso-antes-de-asignación y asignación-sin-lectura (Python, lineal conservador).
+- **Scores** — `RiskScore = Severity × Probability × BlastRadius × Centrality × Detectability` (0–100); prioridad y confianza con pesos explícitos.
+- **Riesgo de función (FR)** — combina ciclomática medida + llamadas/asignaciones/ramas/recursos/concurrencia reales del AST + centralidad.
+
+Ningún score se presenta como medición real: los pesos son heurística razonada y quedan siempre etiquetados.
+
 ## 5. Modelo de seguridad
 
 - El MCP **NO** expone ejecución de shell arbitraria.
@@ -204,7 +226,7 @@ flowchart TD
 
 El bucle de verificación es obligatorio: si `run_verification` no da `PASS`, se vuelve al sprint de corrección. Solo se registra aprendizaje (`learn_verified_outcome`) de resultados **verificados**.
 
-## 7. Herramientas MCP (25)
+## 7. Herramientas MCP (28)
 
 **Inventario y contexto**
 
@@ -255,6 +277,14 @@ El bucle de verificación es obligatorio: si `run_verification` no da `PASS`, se
 | `knowledge_status` | Lee la base de aprendizaje verificada. |
 | `learn_verified_outcome` | Registra SOLO resultados verificados. |
 | `run_verification` | Comandos de verificación con allow-list. |
+
+**Métricas cuantitativas**
+
+| Herramienta | Propósito |
+|---|---|
+| `cyclomatic_complexity_report` | Complejidad ciclomática (McCabe) por función + índice de mantenibilidad. |
+| `dependency_graph_metrics` | Grafo de dependencias: centralidad, ciclos, orden topológico, camino crítico. |
+| `quantitative_risk_report` | Reporte agregado: ciclomática + grafo + concurrencia + estado + risk scores. |
 
 ## 8. Ejemplos y evidencia
 
@@ -360,7 +390,7 @@ Tree-sitter es opcional: `pip install -e ".[tree_sitter]"`.
 python -m pytest tests/ -q
 ```
 
-Resultado actual: **31/31 passing** — 19 de core, 4 de la capa semántica v3 y 8 de los paquetes `guardian_*`.
+Resultado actual: **43/43 passing** — 19 de core, 4 de la capa semántica v3, 8 de los paquetes `guardian_*` y 12 de métricas cuantitativas.
 
 ## 11. Notas
 
