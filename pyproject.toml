@@ -18,7 +18,7 @@ nano-repo-guardian = "nano_repo_guardian.server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["nano_repo_guardian*", "guardian_*"]
+include = ["nano_repo_guardian*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "nano_repo_guardian.__version__"}

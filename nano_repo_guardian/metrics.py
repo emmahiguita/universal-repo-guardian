@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from nano_repo_guardian.constants import RESOURCE_CALL_RE as _RESOURCE_CALLS
-from nano_repo_guardian.core import iter_files, read_text, safe_root
+from nano_repo_guardian.fsio import iter_files, read_text, safe_root
 
 try:
     from radon.complexity import cc_visit
@@ -580,3 +580,40 @@ def quantitative_report(root: str | Path | None = None, top_n: int = 20) -> dict
         "state": state,
         "risk_candidates": candidates,
     }
+
+
+# ---------------------------------------------------------------------------
+# 9. Métricas de detección y selección de regresión.
+# ---------------------------------------------------------------------------
+
+def detection_metrics(expected: set[str], detected: set[str]) -> dict[str, Any]:
+    """Precisión/recall/F1 de una detección frente a un ground-truth."""
+    tp = len(expected & detected)
+    fp = len(detected - expected)
+    fn = len(expected - detected)
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {
+        "tp": tp, "fp": fp, "fn": fn,
+        "precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4),
+    }
+
+
+REGRESSION_RULES = {
+    "network": ["reconnect", "timeout", "disconnect", "resource_cleanup"],
+    "memory": ["lifecycle_stress", "heap_growth", "fd_growth", "native_cleanup"],
+    "process": ["start_stop_restart", "zombie_check", "stale_socket", "pid_reuse"],
+    "render": ["frame_pacing", "surface_recreate", "buffer_backpressure"],
+    "database": ["transaction", "migration", "rollback", "concurrency"],
+    "jni": ["symbol_validation", "device_runtime", "thread_attach", "reference_cleanup"],
+}
+
+
+def recommend_regression(category: str) -> list[str]:
+    """Selecciona casos de regresión relevantes según la categoría del bug."""
+    low = category.lower()
+    for k, v in REGRESSION_RULES.items():
+        if k in low:
+            return v
+    return ["focused_test", "adjacent_regression", "cleanup"]

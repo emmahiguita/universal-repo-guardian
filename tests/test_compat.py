@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from guardian_compat.local_matrix import extract
+from nano_repo_guardian.analysis import build_compatibility_matrix
 
 
 class Tests(unittest.TestCase):
@@ -10,7 +10,7 @@ class Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             r = Path(td)
             (r / "gradle-wrapper.properties").write_text("distributionUrl=xgradle-8.7-bin.zip", encoding="utf-8")
-            self.assertEqual(extract(r)["gradle"]["version"], "8.7")
+            self.assertEqual(build_compatibility_matrix(r)["gradle_wrapper"]["distribution"], "8.7")
 
 
 if __name__ == "__main__":

@@ -274,3 +274,14 @@ def deep_snapshot(root: str | Path | None = None) -> dict[str, Any]:
         "severity_summary": dict(Counter(x["severity"] for x in risks)),
         "knowledge": load_knowledge(root),
     }
+
+
+def claim_template(component: str, version: str) -> dict[str, Any]:
+    """Contrato de verificación upstream: no declarar COMPATIBLE desde extracción local."""
+    return {
+        "component": component, "version": version,
+        "local_status": "EXTRACTED",
+        "upstream_status": "UNVERIFIED",
+        "required_sources": ["official documentation", "official repository release notes"],
+        "rule": "Do not declare COMPATIBLE/INCOMPATIBLE from local version extraction alone.",
+    }

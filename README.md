@@ -46,20 +46,12 @@ flowchart LR
         AG["Agente de IA"]
     end
     subgraph MCP["Servidor MCP · nano_repo_guardian"]
-        SRV["server.py — 25 tools"]
-        CORE["core.py — escaneos determinísticos"]
+        SRV["server.py — 28 tools"]
+        CORE["core.py — facade"]
         SEM["semantic.py — AST Python"]
         LANG["language_adapters.py"]
         COMP["compiler_adapters.py"]
         BENCH["benchmark.py"]
-    end
-    subgraph PKG["Paquetes guardian_* (standalone)"]
-        GS["guardian_semantic"]
-        GC["guardian_cfg"]
-        GSE["guardian_security"]
-        GCO["guardian_compat"]
-        GR["guardian_runtime"]
-        GB["guardian_benchmark"]
     end
     subgraph CON["Conocimiento y playbooks"]
         SK["skills/ — 4 skills"]
@@ -77,20 +69,18 @@ flowchart LR
     CORE --> KB
     RL --> CORE
     SK -.-> PB
-    PKG -.->|"composición opcional"| SRV
 ```
 
-Tres capas:
+Dos capas:
 
-- **`nano_repo_guardian/`** — el servidor MCP y su motor (`core.py` + módulos v3). Es la única capa que se expone al agente.
-- **`guardian_*`** — seis paquetes Python independientes y componibles, usables también fuera del MCP.
+- **`nano_repo_guardian/`** — el servidor MCP y su motor descompuesto en módulos de responsabilidad única (escáneres, contexto, semántica, métricas, CFG). Es la única capa que se expone al agente.
 - **Conocimiento** — skills, playbooks y la base de aprendizaje verificada (`.repo-guardian/knowledge.json`).
 
 ## 3. Componentes
 
 ### 3.1 Servidor MCP
 
-`nano_repo_guardian/server.py` expone 25 herramientas por JSON-RPC sobre stdio. El motor (`core.py`) implementa los escaneos; los módulos v3 añaden la capa semántica.
+`nano_repo_guardian/server.py` expone 28 herramientas por JSON-RPC sobre stdio. El motor está descompuesto en módulos de responsabilidad única (`scanners`, `analysis`, `semantic`, `metrics`, `cfg`, `knowledge`, `fsio`, `constants`).
 
 ### 3.2 Skills
 
@@ -99,16 +89,19 @@ Tres capas:
 - `verification-gatekeeper` — 16 gates de verificación; nunca PASS solo por build.
 - `adaptive-bug-intelligence` — aprendizaje versionado con evidencia.
 
-### 3.3 Paquetes guardian_*
+### 3.3 Módulos internos
 
-| Paquete | Propósito |
+| Módulo | Responsabilidad |
 |---|---|
-| `guardian_semantic` | Adaptadores semánticos multilenguaje; AST Python + Tree-sitter opcional con fallback seguro. |
-| `guardian_cfg` | CFG / dataflow / taint / ownership para análisis lógico y de recursos. |
-| `guardian_security` | AppSec universal: secretos (incluye detección por entropía), inyección, TLS, permisos. |
-| `guardian_compat` | Matriz de compatibilidad local + contrato de verificación upstream. |
-| `guardian_runtime` | Forensia de logs, procesos, memoria y lifecycle. |
-| `guardian_benchmark` | Métricas de detección (precisión/recall/F1) y selección de regresión. |
+| `constants` | Datos y reglas (riesgo, log, extensiones, build files, patrones, fingerprint). |
+| `fsio` | Sistema de archivos (raíz segura, iteración, lectura). |
+| `scanners` | Escáneres (sintaxis, riesgo, duplicados, manifest, imports, dead-code, entropía). |
+| `analysis` | Contexto y agregación (inventario, compatibilidad, dependencias, logs, verify). |
+| `knowledge` | Base de conocimiento adaptativa. |
+| `semantic` | Análisis semántico (AST Python + candidatos multilenguaje). |
+| `metrics` | Motor cuantitativo (ciclomática, grafos, scores, precisión/recall). |
+| `cfg` | CFG y taint source→sink. |
+| `process_model` | Modelo de procesos para forensia de runtime. |
 
 ### 3.4 Playbooks
 
@@ -390,7 +383,7 @@ Tree-sitter es opcional: `pip install -e ".[tree_sitter]"`.
 python -m pytest tests/ -q
 ```
 
-Resultado actual: **43/43 passing** — 19 de core, 4 de la capa semántica v3, 8 de los paquetes `guardian_*` y 12 de métricas cuantitativas.
+Resultado actual: **41/41 passing** — 19 de core, 4 de semántica v3, 12 de métricas, 2 de protocolo MCP y 4 de módulos consolidados (CFG, entropía, compatibilidad, detección).
 
 ## 11. Notas
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import math
 import re
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
@@ -416,5 +417,28 @@ def dead_code_scan(root: str | Path | None = None, max_files: int = 2000) -> lis
                 "category": "dead_code_candidate", "severity": "P3",
                 "status": "HYPOTHESIS_TO_VALIDATE",
                 "message": f"función '{name}' sin referencias verificables (heurística — verificar reflexión/callbacks/exports)",
+            })
+    return out
+
+
+_ENTROPY_TOKEN = re.compile(r'["\']([A-Za-z0-9_\-+/=]{20,})["\']')
+
+
+def _entropy(s: str) -> float:
+    c = Counter(s)
+    n = len(s)
+    return -sum((v / n) * math.log2(v / n) for v in c.values())
+
+
+def entropy_scan(path: Path) -> list[dict[str, Any]]:
+    """Candidatos a secretos por entropía alta en literales largos (heurístico)."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    out = []
+    for m in _ENTROPY_TOKEN.finditer(text):
+        s = m.group(1)
+        if _entropy(s) >= 4.0:
+            out.append({
+                "status": "HYPOTHESIS_TO_VALIDATE", "severity": "P1", "category": "high_entropy_secret_candidate",
+                "line": text.count("\n", 0, m.start()) + 1, "length": len(s), "entropy": round(_entropy(s), 2),
             })
     return out

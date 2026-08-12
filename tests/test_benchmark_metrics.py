@@ -1,11 +1,11 @@
 import unittest
 
-from guardian_benchmark.metrics import metrics
+from nano_repo_guardian.metrics import detection_metrics
 
 
 class Tests(unittest.TestCase):
     def test_metrics(self):
-        m = metrics({"a", "b"}, {"a", "c"})
+        m = detection_metrics({"a", "b"}, {"a", "c"})
         self.assertEqual(m["tp"], 1)
         self.assertEqual(m["fp"], 1)
         self.assertEqual(m["fn"], 1)
