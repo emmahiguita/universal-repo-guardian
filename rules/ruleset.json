@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "principles": {
+    "evidence_states": [
+      "CONFIRMED",
+      "HYPOTHESIS_TO_VALIDATE",
+      "DISCARDED",
+      "INFORMATIONAL"
+    ],
+    "verification_states": [
+      "PASS",
+      "PARTIAL",
+      "FAIL",
+      "UNVERIFIED"
+    ]
+  },
+  "learning_outcomes": [
+    "CONFIRMED",
+    "FALSE_POSITIVE",
+    "FIX_PASS",
+    "FIX_FAIL",
+    "REGRESSION"
+  ],
+  "unsafe_actions_disabled": [
+    "arbitrary_shell",
+    "automatic_dependency_upgrade",
+    "automatic_test_disable",
+    "automatic_production_patch"
+  ]
+}

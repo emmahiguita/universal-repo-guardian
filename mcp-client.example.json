@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "universal-repo-guardian": {
+      "command": "nano-repo-guardian",
+      "env": {
+        "NANO_REPO_ROOT": "C:\\path\\to\\repository"
+      }
+    }
+  }
+}
