@@ -1,14 +1,14 @@
 # Integración con agentes
 
 ## Skills
-Instalar/copiar a `~/.claude/skills/`:
+Instalar/copiar a la carpeta de skills del agente (ej. `~/.claude/skills/`):
 - nano-repo-surgeon
 - android-native-runtime-debugger
 - verification-gatekeeper
 - adaptive-bug-intelligence
 
 ## MCP server
-Ver `README.md` → Instalación → MCP server (Claude Code).
+Ver `README.md` → Instalación → MCP server.
 
 ## Política recomendada para AGENTS.md
 

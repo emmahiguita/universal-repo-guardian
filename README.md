@@ -1,6 +1,6 @@
 # Universal Repo Guardian Pro v2
 
-Bundle de QA de ingeniería, forensia de código y corrección de bugs, agnóstico de repositorio: MCP server + 4 skills para agentes (Claude Code).
+Bundle de QA de ingeniería, forensia de código y corrección de bugs, agnóstico de repositorio y de agente: MCP server + 4 skills para agentes de IA.
 
 ## Qué añade v2
 - Checks determinísticos de sintaxis Python (ast) y JSON (parseo real)
@@ -50,7 +50,7 @@ Bundle de QA de ingeniería, forensia de código y corrección de bugs, agnósti
 
 ## Instalación
 
-### MCP server (Claude Code)
+### MCP server
 1. Instalar SDK: `pip install mcp`
 2. Copiar `nano_repo_guardian/` a una ubicación estable (ej. `~/.claude/mcp-servers/nano-repo-guardian/`)
 3. Registrar en `~/.claude/.claude.json` bajo la clave raíz `mcpServers`:
@@ -62,12 +62,12 @@ Bundle de QA de ingeniería, forensia de código y corrección de bugs, agnósti
   "env": {}
 }
 ```
-4. Reiniciar Claude Code y verificar con `/mcp` → debe mostrar `nano-repo-guardian √ Connected`.
+4. Reiniciar el agente y verificar con `/mcp` → debe mostrar `nano-repo-guardian √ Connected`.
 
 El server soporta ejecución como script (`python server.py`) o módulo (`python -m nano_repo_guardian.server`) y fuerza UTF-8 en stdout para Windows.
 
 ### Skills
-Copiar cada carpeta de `skills/` a `~/.claude/skills/` (Claude Code) — quedan activas en la siguiente sesión.
+Copiar cada carpeta de `skills/` a la carpeta de skills del agente (ej. `~/.claude/skills/`) — quedan activas en la siguiente sesión.
 
 ### Como paquete pip (opcional)
 ```powershell
