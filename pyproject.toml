@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "universal-repo-guardian"
 dynamic = ["version"]
 description = "QA universal de repositorios, forensia de código e inteligencia adaptativa de bugs con evidencia (MCP)"
+authors = [{ name = "Emmanuel Higuita (DevemmAI)", email = "emmanuel.higuita@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0", "radon>=6", "networkx>=3"]
 

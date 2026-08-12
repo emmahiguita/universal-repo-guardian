@@ -2,9 +2,11 @@
 
 ![Versión](https://img.shields.io/badge/version-3.0.0-4c1d95)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab)
-![Tests](https://img.shields.io/badge/tests-43%2F43-brightgreen)
+![Tests](https://img.shields.io/badge/tests-41%2F41-brightgreen)
 ![MCP](https://img.shields.io/badge/MCP-server-111827)
 ![Modelo](https://img.shields.io/badge/evidencia-CONFIRMED%2FHYPOTHESIS-059669)
+
+**Autor:** Emmanuel Higuita (DevemmAI) · [github.com/emmahiguita](https://github.com/emmahiguita)
 
 **QA de ingeniería, forensia de código y corrección de bugs basada en evidencia**, agnóstico de repositorio y de agente.
 
