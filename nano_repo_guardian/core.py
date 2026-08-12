@@ -11,7 +11,7 @@ import hashlib
 from collections import Counter, defaultdict
 from typing import Any, Iterable
 
-VERSION = "2.0.0"
+VERSION = "3.0.0"
 
 SKIP_DIRS = {
     ".git", ".gradle", ".dart_tool", ".idea", ".vscode", "build", "dist",

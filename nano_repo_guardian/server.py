@@ -206,6 +206,47 @@ regresión adyacente -> revisión del diff.
 Estado final solo puede ser: PASS / PARTIAL / FAIL / UNVERIFIED.
 """
 
+
+# === UNIVERSAL REPO GUARDIAN V3 SEMANTIC TOOLS ===
+from nano_repo_guardian.language_adapters import detect_adapter, adapter_inventory
+from nano_repo_guardian.semantic import semantic_repository_snapshot, resource_ownership_scan, call_graph_consistency
+from nano_repo_guardian.compiler_adapters import available_toolchains, recommended_verifiers
+from nano_repo_guardian.benchmark import benchmark_expectations
+
+def _v3_language_for(path: Path) -> str | None:
+    adapter = detect_adapter(path)
+    return adapter.language if adapter else None
+
+@mcp.tool()
+def language_adapter_inventory() -> dict:
+    return adapter_inventory(ROOT)
+
+@mcp.tool()
+def semantic_program_snapshot() -> dict:
+    return semantic_repository_snapshot(ROOT, _v3_language_for)
+
+@mcp.tool()
+def resource_ownership_audit() -> list[dict]:
+    return resource_ownership_scan(ROOT)
+
+@mcp.tool()
+def semantic_call_consistency() -> dict:
+    return call_graph_consistency(semantic_repository_snapshot(ROOT, _v3_language_for))
+
+@mcp.tool()
+def toolchain_status() -> dict:
+    return available_toolchains()
+
+@mcp.tool()
+def recommended_compiler_verifiers() -> list[dict]:
+    return recommended_verifiers(ROOT)
+
+@mcp.tool()
+def benchmark_fixture_status() -> dict:
+    return benchmark_expectations(ROOT)
+# === END V3 SEMANTIC TOOLS ===
+
+
 def main():
     mcp.run(transport="stdio")
 

@@ -41,6 +41,13 @@ Bundle de QA de ingeniería, forensia de código y corrección de bugs, agnósti
 - `knowledge_status`
 - `learn_verified_outcome`
 - `run_verification`
+- `language_adapter_inventory`
+- `semantic_program_snapshot`
+- `resource_ownership_audit`
+- `semantic_call_consistency`
+- `toolchain_status`
+- `recommended_compiler_verifiers`
+- `benchmark_fixture_status`
 
 ## Modelo de seguridad
 - El MCP NO expone ejecución de shell arbitraria
@@ -71,7 +78,7 @@ Copiar cada carpeta de `skills/` a la carpeta de skills del agente (ej. `~/.clau
 
 ### Como paquete pip (opcional)
 ```powershell
-cd nano_repo_guardian_pro_v2
+cd universal-repo-guardian
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -e .
@@ -99,3 +106,26 @@ nano-repo-guardian
 
 ## Importante
 Esta herramienta mejora el ranking de detección con historial verificado. No garantiza matemáticamente encontrar todos los defectos de software posibles.
+
+
+## v3 Semantic Analysis
+
+- Adapter registry: Python, Kotlin, Java, Dart, Rust, C/C++, TypeScript, JavaScript, Go, C# y Swift.
+- Python usa AST real para símbolos y llamadas.
+- Otros lenguajes producen candidatos conservadores hasta verificación por compilador/parser.
+- Resource ownership audit: malloc/free, mmap/munmap, socket/close, controllers/dispose.
+- Toolchain discovery y verificadores recomendados.
+- Fixtures con bugs plantados.
+
+## Paquetes adicionales (guardian_*)
+
+Seis paquetes standalone y composables, instalables junto al MCP server:
+
+- `guardian_semantic` — adaptadores semánticos multilenguaje (AST Python + Tree-sitter opcional con fallback seguro).
+- `guardian_cfg` — CFG/dataflow/taint/ownership para análisis lógico y de recursos.
+- `guardian_security` — AppSec universal: secretos, inyección, TLS, permisos, superficies expuestas (incluye detección por entropía).
+- `guardian_compat` — matriz de compatibilidad local + contrato de verificación upstream.
+- `guardian_runtime` — forensia de logs/procesos/memoria/lifecycle.
+- `guardian_benchmark` — métricas de detección y selección de regresión.
+
+Cada paquete conserva el modelo de evidencia CONFIRMED/HYPOTHESIS_TO_VALIDATE y no ejecuta shell arbitraria ni descarga grammars automáticamente.

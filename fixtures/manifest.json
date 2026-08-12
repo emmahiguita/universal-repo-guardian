@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "id": "PY-CALL-001",
+      "fixture": "python_call_graph.py",
+      "expected": [
+        "symbol:a",
+        "symbol:b",
+        "call:a->b"
+      ]
+    },
+    {
+      "id": "C-MEM-001",
+      "fixture": "native_leak.c",
+      "expected": [
+        "resource_ownership_imbalance:malloc/free"
+      ]
+    },
+    {
+      "id": "KT-SYM-001",
+      "fixture": "kotlin_symbols.kt",
+      "expected": [
+        "symbol:Demo",
+        "symbol:run"
+      ]
+    }
+  ]
+}
