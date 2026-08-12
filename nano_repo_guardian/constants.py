@@ -7,6 +7,7 @@ había que replicarlo en cada copia, con riesgo de divergencia.
 
 from __future__ import annotations
 
+import hashlib
 import re
 
 # Recurso -> operación que lo libera. Fuente canónica para:
@@ -40,3 +41,12 @@ RESOURCE_CALL_RE = re.compile(
     "|".join(re.escape(t) for t in sorted(RESOURCE_CALL_TOKENS, key=len, reverse=True)),
     re.IGNORECASE,
 )
+
+
+def fingerprint(*parts: str) -> str:
+    """Fingerprint determinístico (sha256 truncado) de un hallazgo o incidente.
+
+    Fuente única: antes estaba duplicado en core.py (`_fingerprint`) y semantic.py (`_fp`).
+    """
+    raw = "|".join(parts).encode("utf-8", errors="replace")
+    return hashlib.sha256(raw).hexdigest()[:16]

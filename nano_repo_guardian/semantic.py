@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import ast
-import hashlib
 import re
 from collections import Counter
 from dataclasses import asdict, dataclass
@@ -9,10 +8,8 @@ from pathlib import Path
 from typing import Any
 
 from nano_repo_guardian.constants import RESOURCE_PAIRS
+from nano_repo_guardian.constants import fingerprint as _fp
 
-
-def _fp(*parts: str) -> str:
-    return hashlib.sha256("|".join(parts).encode("utf-8", errors="replace")).hexdigest()[:16]
 
 @dataclass
 class Symbol:

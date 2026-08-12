@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from . import __version__ as VERSION
+from .constants import fingerprint as _fingerprint
 
 SKIP_DIRS = {
     ".git", ".gradle", ".dart_tool", ".idea", ".vscode", "build", "dist",
@@ -185,10 +186,6 @@ def read_text(path: Path, max_bytes: int = 3_000_000) -> str:
 
 def is_text_candidate(path: Path) -> bool:
     return path.suffix.lower() in TEXT_EXTS or path.name in BUILD_NAMES
-
-def _fingerprint(*parts: str) -> str:
-    raw = "|".join(parts).encode("utf-8", errors="replace")
-    return hashlib.sha256(raw).hexdigest()[:16]
 
 def inventory(root: str | Path | None = None) -> dict[str, Any]:
     r = safe_root(root)
