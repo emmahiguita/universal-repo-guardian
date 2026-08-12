@@ -1,6 +1,8 @@
 from __future__ import annotations
+
+import hashlib
+import re
 from pathlib import Path
-import re, hashlib
 
 RULES=[
 ("hardcoded_secret","P0",re.compile(r"\b(api[_-]?key|secret|token|password)\b\s*[:=]\s*['\"][^'\"]{6,}['\"]",re.I)),

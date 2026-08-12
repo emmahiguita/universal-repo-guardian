@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+
 def claim_template(component:str, version:str):
     return {
         "component":component,"version":version,

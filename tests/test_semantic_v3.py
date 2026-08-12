@@ -1,8 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+
 from nano_repo_guardian.language_adapters import detect_adapter
-from nano_repo_guardian.semantic import python_semantic_analysis, generic_semantic_analysis, resource_ownership_scan
+from nano_repo_guardian.semantic import generic_semantic_analysis, python_semantic_analysis, resource_ownership_scan
+
 
 class SemanticV3Tests(unittest.TestCase):
     def test_detect_adapter(self):

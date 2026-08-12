@@ -4,11 +4,22 @@ import unittest
 from pathlib import Path
 
 from nano_repo_guardian.core import (
-    analyze_log_text, android_manifest_audit, apply_knowledge, architecture_smells,
-    build_compatibility_matrix, dead_code_scan, dependency_inventory, duplicate_scan,
-    hotspot_scan, imports_audit, inventory, record_verified_outcome, risk_scan,
-    search_code, syntax_scan, verify, load_knowledge
+    analyze_log_text,
+    android_manifest_audit,
+    apply_knowledge,
+    dead_code_scan,
+    dependency_inventory,
+    duplicate_scan,
+    imports_audit,
+    inventory,
+    load_knowledge,
+    record_verified_outcome,
+    risk_scan,
+    search_code,
+    syntax_scan,
+    verify,
 )
+
 
 class GuardianV2Tests(unittest.TestCase):
     def test_inventory(self):

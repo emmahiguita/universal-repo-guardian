@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from pathlib import Path
 import ast
+import hashlib
 import json
 import os
 import re
 import subprocess
-import hashlib
 from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any, Iterable
 
-VERSION = "3.0.0"
+from . import __version__ as VERSION
 
 SKIP_DIRS = {
     ".git", ".gradle", ".dart_tool", ".idea", ".vscode", "build", "dist",
@@ -193,7 +193,7 @@ def _fingerprint(*parts: str) -> str:
 def inventory(root: str | Path | None = None) -> dict[str, Any]:
     r = safe_root(root)
     fs = list(iter_files(r))
-    ext_counts = Counter()
+    ext_counts: Counter[str] = Counter()
     builds, critical, tests = [], [], []
     for p in fs:
         ext_counts[p.suffix.lower() or "<none>"] += 1
@@ -357,7 +357,7 @@ def hotspot_scan(root: str | Path | None = None, top_n: int = 50) -> list[dict[s
     r = safe_root(root)
     risks = risk_scan(r, max_findings=5000)
     risk_counts = Counter(x["file"] for x in risks)
-    rows = []
+    rows: list[dict[str, Any]] = []
     for p in iter_files(r):
         if p.suffix.lower() not in CODE_EXTS:
             continue
@@ -451,7 +451,7 @@ def build_compatibility_matrix(root: str | Path | None = None) -> dict[str, Any]
                     "dependencies": obj.get("dependencies", {}),
                     "devDependencies": obj.get("devDependencies", {}),
                 })
-            except Exception:
+            except json.JSONDecodeError:
                 pass
         elif p.name == "pyproject.toml":
             matrix.setdefault("python", []).append({
@@ -479,7 +479,7 @@ def dependency_inventory(root: str | Path | None = None) -> list[dict[str, Any]]
                 for scope in ("dependencies","devDependencies","peerDependencies"):
                     for name,ver in (obj.get(scope) or {}).items():
                         deps.append({"ecosystem":"npm","file":rel,"scope":scope,"name":name,"version":ver})
-            except Exception:
+            except json.JSONDecodeError:
                 pass
         elif p.name == "pubspec.yaml":
             current = None
@@ -505,7 +505,7 @@ def dependency_inventory(root: str | Path | None = None) -> list[dict[str, Any]]
 
 def analyze_log_text(text: str, max_per_category: int = 50) -> dict[str, Any]:
     categories: dict[str,list[dict[str,Any]]] = {}
-    incidents = []
+    incidents: list[dict[str, Any]] = []
     lines = text.splitlines()
     for idx,line in enumerate(lines,1):
         for category,severity,pattern in LOG_RULES:
@@ -518,11 +518,12 @@ def analyze_log_text(text: str, max_per_category: int = 50) -> dict[str, Any]:
                     incidents.append({"category":category, **item})
     # group fingerprints
     fp_counts = Counter(x["fingerprint"] for x in incidents)
-    groups = []
-    seen = set()
+    groups: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for x in incidents:
         fp=x["fingerprint"]
-        if fp in seen: continue
+        if fp in seen:
+            continue
         seen.add(fp)
         groups.append({
             "fingerprint":fp,
@@ -549,7 +550,7 @@ def git_changed_files(root: str | Path | None = None, staged: bool = False) -> l
         if cp.returncode != 0:
             return []
         return [x.strip() for x in cp.stdout.splitlines() if x.strip()]
-    except Exception:
+    except (FileNotFoundError, subprocess.TimeoutExpired):
         return []
 
 def incremental_scan(root: str | Path | None = None, staged: bool = False) -> dict[str,Any]:
@@ -588,7 +589,7 @@ def load_knowledge(root: str | Path | None = None) -> dict[str,Any]:
         return {"version":1,"verified_patterns":{},"false_positives":{},"fix_outcomes":[]}
     try:
         return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return {"version":1,"verified_patterns":{},"false_positives":{},"fix_outcomes":[]}
 
 def record_verified_outcome(
@@ -808,7 +809,7 @@ def imports_audit(root: str | Path | None = None) -> dict[str, Any]:
                 seen[imp] = line_no
         # candidatos no usados: último segmento del import no aparece fuera de la zona de imports
         lines = text.splitlines()
-        body = "\n".join(l for l in lines if not l.strip().startswith("import"))
+        body = "\n".join(line for line in lines if not line.strip().startswith("import"))
         body_lower = body.lower()
         for imp, ln in seen.items():
             simple = imp.rsplit(".", 1)[-1].rsplit("/", 1)[-1].lower()
@@ -843,12 +844,19 @@ ENTRY_OR_CALLBACK = {
     "build", "dispose", "didChangeDependencies", "onReceive", "JNI_OnLoad",
 }
 
+_WORD_RE = re.compile(r"\b\w+\b")
+
+
 def dead_code_scan(root: str | Path | None = None, max_files: int = 2000) -> list[dict[str, Any]]:
     """Candidatos a código muerto: funciones definidas sin menciones en el resto del repo.
-    Heurística por nombre — siempre HYPOTHESIS_TO_VALIDATE."""
+    Heurística por nombre — siempre HYPOTHESIS_TO_VALIDATE.
+
+    Complejidad O(archivos × símbolos): se indexa cada ocurrencia una sola vez, en lugar
+    de re-escandear todos los archivos por cada definición (que era O(defs × archivos × líneas)).
+    """
     r = safe_root(root)
     defs: list[tuple[str, str, int]] = []  # (archivo, nombre, línea)
-    files: list[tuple[Path, str]] = []
+    files: list[tuple[str, str]] = []  # (rel, texto)
     for p in iter_files(r):
         if p.suffix.lower() not in FUNC_PATTERNS:
             continue
@@ -856,7 +864,7 @@ def dead_code_scan(root: str | Path | None = None, max_files: int = 2000) -> lis
         if not text:
             continue
         rel = str(p.relative_to(r))
-        files.append((p, rel))
+        files.append((rel, text))
         for m in FUNC_PATTERNS[p.suffix.lower()].finditer(text):
             name = m.group(1)
             if name in ENTRY_OR_CALLBACK or len(name) < 3:
@@ -865,19 +873,24 @@ def dead_code_scan(root: str | Path | None = None, max_files: int = 2000) -> lis
             defs.append((rel, name, line_no))
         if len(files) >= max_files:
             break
+
+    # Index único: solo los nombres definidos, mapeados a (archivo, línea).
+    def_names = {name for _, name, _ in defs}
+    index: dict[str, list[tuple[str, int]]] = {n: [] for n in def_names}
+    for rel, text in files:
+        for m in _WORD_RE.finditer(text):
+            w = m.group(0)
+            if w in def_names:
+                index[w].append((rel, text.count("\n", 0, m.start()) + 1))
+
     # mención = nombre aparece en cualquier archivo fuera de su propia línea de definición
     out: list[dict[str, Any]] = []
     for rel, name, line_no in defs:
         mentions = 0
-        for p2, rel2 in files:
-            t2 = read_text(p2)
-            if not t2:
-                continue
-            for mm in re.finditer(r"\b" + re.escape(name) + r"\b", t2):
-                ln = t2.count("\n", 0, mm.start()) + 1
-                if rel2 == rel and ln == line_no:
-                    continue  # la propia definición no cuenta
-                mentions += 1
+        for rel2, ln in index.get(name, []):
+            if rel2 == rel and ln == line_no:
+                continue  # la propia definición no cuenta
+            mentions += 1
             if mentions > 2:
                 break
         if mentions <= 1:

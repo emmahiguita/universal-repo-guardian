@@ -1,8 +1,10 @@
 from __future__ import annotations
-from pathlib import Path
-import re
 
-PAIRS={"malloc":"free","calloc":"free","mmap":"munmap","socket":"close","open":"close","fopen":"fclose","new":"delete"}
+import re
+from pathlib import Path
+
+from nano_repo_guardian.constants import RESOURCE_PAIRS as PAIRS
+
 
 def scan(path: Path):
     text=path.read_text(encoding="utf-8",errors="replace")

@@ -1,26 +1,15 @@
 from __future__ import annotations
-from dataclasses import dataclass, asdict
-from pathlib import Path
-from collections import Counter
+
 import ast
 import hashlib
 import re
+from collections import Counter
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
-RESOURCE_PAIRS = {
-    "malloc": "free",
-    "calloc": "free",
-    "realloc": "free",
-    "mmap": "munmap",
-    "open": "close",
-    "fopen": "fclose",
-    "socket": "close",
-    "new": "delete",
-    "StreamController": "close",
-    "AnimationController": "dispose",
-    "TextEditingController": "dispose",
-    "FocusNode": "dispose",
-}
+from nano_repo_guardian.constants import RESOURCE_PAIRS
+
 
 def _fp(*parts: str) -> str:
     return hashlib.sha256("|".join(parts).encode("utf-8", errors="replace")).hexdigest()[:16]
@@ -44,9 +33,9 @@ class Edge:
 class PythonSemanticVisitor(ast.NodeVisitor):
     def __init__(self, file: str):
         self.file = file
-        self.symbols = []
-        self.edges = []
-        self.scope = []
+        self.symbols: list[Symbol] = []
+        self.edges: list[Edge] = []
+        self.scope: list[str] = []
         self.branch_count = 0
         self.returns = 0
         self.raises = 0
@@ -170,7 +159,7 @@ def generic_semantic_analysis(path: Path, root: Path, language: str) -> dict[str
 
 def semantic_repository_snapshot(root: Path, file_language) -> dict[str, Any]:
     analyses, edges = [], []
-    symbol_counter = Counter()
+    symbol_counter: Counter[str] = Counter()
     for p in root.rglob("*"):
         if not p.is_file():
             continue
@@ -220,7 +209,7 @@ def call_graph_consistency(snapshot: dict[str, Any]) -> dict[str, Any]:
     for f in snapshot.get("semantic_files", []):
         for s in f.get("symbols", []):
             symbols.add(s["name"].split(".")[-1])
-    unresolved = Counter()
+    unresolved: Counter[str] = Counter()
     for edge in snapshot.get("edges", []):
         target = edge["target"].split(".")[-1]
         if target not in symbols and target not in {"print","println","len","str","int","list","dict","set","map"}:

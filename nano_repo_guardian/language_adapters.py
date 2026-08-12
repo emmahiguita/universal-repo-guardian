@@ -1,9 +1,11 @@
 from __future__ import annotations
-from dataclasses import dataclass, asdict
-from pathlib import Path
+
 import shutil
 import sys
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
+
 
 @dataclass(frozen=True)
 class AdapterInfo:
@@ -31,7 +33,8 @@ def detect_adapter(path: Path) -> AdapterInfo | None:
     return EXT_TO_ADAPTER.get(path.suffix.lower())
 
 def adapter_inventory(root: Path) -> dict[str, Any]:
-    counts, grouped = {}, {}
+    counts: dict[str, int] = {}
+    grouped: dict[str, list[str]] = {}
     for p in root.rglob("*"):
         if not p.is_file():
             continue

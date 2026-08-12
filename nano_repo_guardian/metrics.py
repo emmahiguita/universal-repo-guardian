@@ -20,7 +20,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from nano_repo_guardian.core import safe_root, iter_files, read_text
+from nano_repo_guardian.constants import RESOURCE_CALL_RE as _RESOURCE_CALLS
+from nano_repo_guardian.core import iter_files, read_text, safe_root
 
 try:
     from radon.complexity import cc_visit
@@ -265,7 +266,7 @@ def blast_radius(root: str | Path | None = None, targets: list[str] | None = Non
     total = len(nodes)
     deg = nx.degree_centrality(g)
     total_deg = sum(deg.values()) or 1.0
-    results = []
+    results: list[dict[str, Any]] = []
     for t in (targets or []):
         if t not in g:
             results.append({"target": t, "error": "modulo_no_encontrado", "nature": "CALCULADO"})
@@ -305,7 +306,7 @@ def _collect_names(node: ast.AST, out: list[ast.Name]) -> None:
         _collect_names(child, out)
 
 
-def _dataflow_scope(body_nodes: list[ast.AST], params: set[str], rel: str, issues: list[dict[str, Any]]) -> None:
+def _dataflow_scope(body_nodes: list[ast.stmt], params: set[str], rel: str, issues: list[dict[str, Any]]) -> None:
     names: list[ast.Name] = []
     for stmt in body_nodes:
         _collect_names(stmt, names)
@@ -409,7 +410,7 @@ STATE_HINT = re.compile(
 
 def state_complexity(root: str | Path | None = None) -> dict[str, Any]:
     r = safe_root(root)
-    found = Counter()
+    found: Counter[str] = Counter()
     for p in iter_files(r):
         if p.suffix.lower() not in {".py", ".kt", ".kts", ".java", ".dart", ".rs", ".c", ".cc", ".cpp", ".h", ".hpp", ".ts", ".tsx", ".js", ".jsx"}:
             continue
@@ -474,7 +475,6 @@ def module_health(bug_penalty: float = 0.0, complexity_penalty: float = 0.0, cou
 # 7. Riesgo de función (FR). Medidas reales del AST => ESTIMADO.
 # ---------------------------------------------------------------------------
 
-_RESOURCE_CALLS = re.compile(r"malloc|calloc|realloc|free|mmap|munmap|open|close|fopen|fclose|socket|dispose", re.I)
 _CONC_CALLS = re.compile(r"Thread|Executor|async|await|launch|coroutine|lock|mutex|synchronized|submit|join", re.I)
 
 
@@ -546,7 +546,7 @@ def quantitative_report(root: str | Path | None = None, top_n: int = 20) -> dict
         centrality_by_file[m["file"]] = m.get("degree_centrality", 0.0)
 
     # re-parse de los archivos de las top-N funciones para medir métricas reales
-    file_cache: dict[str, ast.AST] = {}
+    file_cache: dict[str, ast.AST | None] = {}
     candidates: list[dict[str, Any]] = []
     for f in cyc["functions"][:top_n]:
         rel = f["file"]

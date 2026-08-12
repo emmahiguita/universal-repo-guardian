@@ -3,9 +3,17 @@ import unittest
 from pathlib import Path
 
 from nano_repo_guardian.metrics import (
-    blast_radius, bug_priority, confidence_score, concurrency_flags,
-    cyclomatic_report, data_flow_issues, dependency_graph_metrics,
-    function_risk, module_health, risk_score, state_complexity,
+    blast_radius,
+    bug_priority,
+    concurrency_flags,
+    confidence_score,
+    cyclomatic_report,
+    data_flow_issues,
+    dependency_graph_metrics,
+    function_risk,
+    module_health,
+    risk_score,
+    state_complexity,
 )
 
 

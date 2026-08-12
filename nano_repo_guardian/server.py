@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import os
 import sys
 from pathlib import Path
@@ -12,26 +13,54 @@ except ImportError as exc:
 # Al lanzarlo como script no hay parent package y el import relativo falla.
 try:
     from .core import (
-        analyze_log_text, android_manifest_audit, apply_knowledge, architecture_smells,
-        build_compatibility_matrix, dead_code_scan, deep_snapshot, dependency_inventory,
-        duplicate_scan, hotspot_scan, imports_audit, incremental_scan,
-        inventory, load_knowledge, record_verified_outcome, risk_scan, search_code,
-        syntax_scan, verify,
+        analyze_log_text,
+        android_manifest_audit,
+        apply_knowledge,
+        architecture_smells,
+        build_compatibility_matrix,
+        dead_code_scan,
+        deep_snapshot,
+        dependency_inventory,
+        duplicate_scan,
+        hotspot_scan,
+        imports_audit,
+        incremental_scan,
+        inventory,
+        load_knowledge,
+        record_verified_outcome,
+        risk_scan,
+        search_code,
+        syntax_scan,
+        verify,
     )
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from nano_repo_guardian.core import (
-        analyze_log_text, android_manifest_audit, apply_knowledge, architecture_smells,
-        build_compatibility_matrix, dead_code_scan, deep_snapshot, dependency_inventory,
-        duplicate_scan, hotspot_scan, imports_audit, incremental_scan,
-        inventory, load_knowledge, record_verified_outcome, risk_scan, search_code,
-        syntax_scan, verify,
+        analyze_log_text,
+        android_manifest_audit,
+        apply_knowledge,
+        architecture_smells,
+        build_compatibility_matrix,
+        dead_code_scan,
+        deep_snapshot,
+        dependency_inventory,
+        duplicate_scan,
+        hotspot_scan,
+        imports_audit,
+        incremental_scan,
+        inventory,
+        load_knowledge,
+        record_verified_outcome,
+        risk_scan,
+        search_code,
+        syntax_scan,
+        verify,
     )
 
 # Windows: stdout en cp1252 rompe el protocolo JSON-RPC si hay texto no-ASCII.
 try:
-    sys.stdout.reconfigure(encoding="utf-8")
-except Exception:
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+except (AttributeError, OSError, ValueError):
     pass
 
 ROOT = Path(os.environ.get("NANO_REPO_ROOT", os.getcwd())).resolve()
@@ -208,10 +237,17 @@ Estado final solo puede ser: PASS / PARTIAL / FAIL / UNVERIFIED.
 
 
 # === UNIVERSAL REPO GUARDIAN V3 SEMANTIC TOOLS ===
-from nano_repo_guardian.language_adapters import detect_adapter, adapter_inventory
-from nano_repo_guardian.semantic import semantic_repository_snapshot, resource_ownership_scan, call_graph_consistency
-from nano_repo_guardian.compiler_adapters import available_toolchains, recommended_verifiers
-from nano_repo_guardian.benchmark import benchmark_expectations
+# Imports a mitad de archivo a propósito: deben ejecutarse después del bootstrap de
+# sys.path (soporte script/module). Por eso llevan noqa: E402.
+from nano_repo_guardian.benchmark import benchmark_expectations  # noqa: E402
+from nano_repo_guardian.compiler_adapters import available_toolchains, recommended_verifiers  # noqa: E402
+from nano_repo_guardian.language_adapters import adapter_inventory, detect_adapter  # noqa: E402
+from nano_repo_guardian.semantic import (  # noqa: E402
+    call_graph_consistency,
+    resource_ownership_scan,
+    semantic_repository_snapshot,
+)
+
 
 def _v3_language_for(path: Path) -> str | None:
     adapter = detect_adapter(path)
@@ -248,7 +284,8 @@ def benchmark_fixture_status() -> dict:
 
 
 # === UNIVERSAL REPO GUARDIAN QUANTITATIVE METRICS ===
-from nano_repo_guardian import metrics as _quant
+from nano_repo_guardian import metrics as _quant  # noqa: E402
+
 
 @mcp.tool()
 def cyclomatic_complexity_report() -> dict:

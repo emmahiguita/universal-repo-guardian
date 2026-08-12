@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "universal-repo-guardian"
-version = "3.0.0"
+dynamic = ["version"]
 description = "QA universal de repositorios, forensia de código e inteligencia adaptativa de bugs con evidencia (MCP)"
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0", "radon>=6", "networkx>=3"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
 tree_sitter = ["tree-sitter>=0.22"]
 
 [project.scripts]
@@ -19,3 +19,22 @@ nano-repo-guardian = "nano_repo_guardian.server:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["nano_repo_guardian*", "guardian_*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "nano_repo_guardian.__version__"}
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
