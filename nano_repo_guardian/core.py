@@ -113,6 +113,19 @@ RISK_RULES = [
      "Construcción dinámica de SQL potencial"),
     ("transaction", "P2", re.compile(r"\b(transaction|BEGIN TRANSACTION|commit\(|rollback\()\b", re.I),
      "Frontera de consistencia transaccional de datos"),
+    # Seguridad / credenciales / Android
+    ("hardcoded_credential", "P0", re.compile(r"\b(password|passwd|api_key|apikey|secret|token)\b\s*[:=]\s*[\"'][^\"']{4,}[\"']", re.I),
+     "Credencial o secreto posiblemente hardcodeado"),
+    ("cleartext_traffic", "P1", re.compile(r'usesCleartextTraffic\s*=\s*"true"', re.I),
+     "Tráfico en claro habilitado en el manifest"),
+    ("android_exported", "P1", re.compile(r'android:exported\s*=\s*"true"', re.I),
+     "Componente Android exportado; verificar superficie de ataque"),
+    ("wildcard_import", "P3", re.compile(r"^(?:import\s+[\w.]+\s*\*|from\s+\S+\s+import\s+\*)", re.M),
+     "Import wildcard; reduce trazabilidad de dependencias"),
+    ("run_blocking", "P2", re.compile(r"\brunBlocking\b"),
+     "Bloqueo de corrutina en el hilo llamador; verificar que no es Main"),
+    ("debug_print", "P3", re.compile(r"\b(print|println|Log\.d|console\.log)\s*\("),
+     "Salida de debug en código de producción"),
 ]
 
 LOG_RULES = [
@@ -661,3 +674,218 @@ def deep_snapshot(root: str | Path | None = None) -> dict[str,Any]:
         "severity_summary":dict(Counter(x["severity"] for x in risks)),
         "knowledge":load_knowledge(root),
     }
+
+# ---------------------------------------------------------------------------
+# v2.2 — auditoría de manifest Android, imports y código muerto
+# ---------------------------------------------------------------------------
+
+ANDROID_DANGEROUS_PERMISSIONS = {
+    "READ_CALENDAR","WRITE_CALENDAR","CAMERA","READ_CONTACTS","WRITE_CONTACTS",
+    "GET_ACCOUNTS","ACCESS_FINE_LOCATION","ACCESS_COARSE_LOCATION",
+    "ACCESS_BACKGROUND_LOCATION","RECORD_AUDIO","READ_PHONE_STATE",
+    "READ_PHONE_NUMBERS","CALL_PHONE","ANSWER_PHONE_CALLS","ADD_VOICEMAIL",
+    "READ_CALL_LOG","WRITE_CALL_LOG","USE_SIP","BODY_SENSORS","SEND_SMS",
+    "RECEIVE_SMS","READ_SMS","RECEIVE_WAP_PUSH","RECEIVE_MMS","READ_EXTERNAL_STORAGE",
+    "WRITE_EXTERNAL_STORAGE","ACCESS_MEDIA_LOCATION","ACCEPT_HANDOVER","ACTIVITY_RECOGNITION",
+}
+
+def _xml_bool(el, attr: str, ns: str) -> bool | None:
+    val = el.get(f"{{{ns}}}{attr}")
+    if val is None:
+        return None
+    return val.strip().lower() == "true"
+
+def android_manifest_audit(root: str | Path | None = None) -> list[dict[str, Any]]:
+    """Audita AndroidManifest.xml: permisos, componentes exportados, cleartext, backup, debuggable."""
+    import xml.etree.ElementTree as ET
+    r = safe_root(root)
+    out: list[dict[str, Any]] = []
+    NS = "http://schemas.android.com/apk/res/android"
+    for p in iter_files(r):
+        if p.name != "AndroidManifest.xml":
+            continue
+        rel = str(p.relative_to(r))
+        try:
+            tree = ET.parse(p)
+        except ET.ParseError as e:
+            out.append({"file": rel, "category": "manifest_malformed", "severity": "P0",
+                        "status": "CONFIRMED", "message": f"XML malformado: {e}"})
+            continue
+        root_el = tree.getroot()
+        # application flags
+        app = root_el.find("application")
+        if app is not None:
+            for attr, cat, sev in (("debuggable", "manifest_debuggable", "P1"),
+                                   ("allowBackup", "manifest_backup", "P2")):
+                val = _xml_bool(app, attr, NS)
+                if val is True:
+                    out.append({"file": rel, "category": cat, "severity": sev,
+                                "status": "CONFIRMED",
+                                "message": f"application android:{attr}=\"true\""})
+            if _xml_bool(app, "usesCleartextTraffic", NS) is True:
+                out.append({"file": rel, "category": "manifest_cleartext", "severity": "P1",
+                            "status": "CONFIRMED",
+                            "message": 'application android:usesCleartextTraffic="true" — tráfico HTTP en claro permitido'})
+        # permissions
+        for perm in root_el.iter("uses-permission"):
+            name = perm.get(f"{{{NS}}}name", "")
+            if not name:
+                continue
+            sev = "P1" if name.split(".")[-1] in ANDROID_DANGEROUS_PERMISSIONS else "P2"
+            out.append({"file": rel, "category": "manifest_permission", "severity": sev,
+                        "status": "INFORMATIONAL" if sev == "P2" else "HYPOTHESIS_TO_VALIDATE",
+                        "message": f"permiso declarado: {name}"})
+        # exported components
+        for tag in ("activity", "service", "receiver", "provider"):
+            for el in root_el.iter(tag):
+                name = el.get(f"{{{NS}}}name", "?")
+                exported = _xml_bool(el, "exported", NS)
+                has_filter = el.find("intent-filter") is not None
+                if exported is True:
+                    out.append({"file": rel, "category": "manifest_exported", "severity": "P1",
+                                "status": "HYPOTHESIS_TO_VALIDATE",
+                                "message": f"<{tag}> {name} android:exported=\"true\" — verificar superficie de ataque"})
+                elif exported is None and has_filter:
+                    out.append({"file": rel, "category": "manifest_exported", "severity": "P1",
+                                "status": "HYPOTHESIS_TO_VALIDATE",
+                                "message": f"<{tag}> {name} con intent-filter sin android:exported explícito — exportado implícitamente"})
+        # providers with authorities
+        for prov in root_el.iter("provider"):
+            auth = prov.get(f"{{{NS}}}authorities")
+            exported = _xml_bool(prov, "exported", NS)
+            if auth and exported is True:
+                out.append({"file": rel, "category": "manifest_provider_exported", "severity": "P0",
+                            "status": "HYPOTHESIS_TO_VALIDATE",
+                            "message": f"ContentProvider exportado con authorities={auth} — riesgo de fuga de datos"})
+    return out
+
+IMPORT_PATTERNS = {
+    ".kt": re.compile(r"^import\s+([\w.]+)(\*)?", re.M),
+    ".kts": re.compile(r"^import\s+([\w.]+)(\*)?", re.M),
+    ".java": re.compile(r"^import\s+(static\s+)?([\w.]+)(\*)?", re.M),
+    ".dart": re.compile(r"^import\s+['\"]([^'\"]+)['\"]", re.M),
+    ".py": re.compile(r"^from\s+([\w.]+)\s+import\s+([\w*]+)", re.M),
+    ".go": re.compile(r"^import\s+\(([^)]*)\)|^import\s+\"([^\"]+)\"", re.M | re.S),
+    ".ts": re.compile(r"^import\s+.*?from\s+['\"]([^'\"]+)['\"]", re.M),
+    ".tsx": re.compile(r"^import\s+.*?from\s+['\"]([^'\"]+)['\"]", re.M),
+    ".js": re.compile(r"^import\s+.*?from\s+['\"]([^'\"]+)['\"]", re.M),
+}
+
+def imports_audit(root: str | Path | None = None) -> dict[str, Any]:
+    """Audita imports: duplicados, wildcard y candidatos a no usados (heurística por nombre)."""
+    r = safe_root(root)
+    duplicates: list[dict[str, Any]] = []
+    wildcards: list[dict[str, Any]] = []
+    unused: list[dict[str, Any]] = []
+    total_files = 0
+    for p in iter_files(r):
+        pat = IMPORT_PATTERNS.get(p.suffix.lower())
+        if not pat:
+            continue
+        text = read_text(p)
+        if not text:
+            continue
+        total_files += 1
+        rel = str(p.relative_to(r))
+        seen: dict[str, int] = {}
+        for m in pat.finditer(text):
+            # normalizar: usar el grupo más relevante
+            imp = next((g for g in m.groups() if g and g != "static"), "")
+            if not imp:
+                continue
+            line_no = text.count("\n", 0, m.start()) + 1
+            if "*" in m.group(0).split()[-1] or imp.endswith("*"):
+                wildcards.append({"file": rel, "line": line_no, "import": imp,
+                                  "status": "HYPOTHESIS_TO_VALIDATE", "severity": "P3",
+                                  "category": "wildcard_import"})
+                continue
+            if imp in seen:
+                duplicates.append({"file": rel, "line": line_no, "import": imp,
+                                   "status": "CONFIRMED", "severity": "P3",
+                                   "category": "duplicate_import",
+                                   "message": f"import duplicado (primera vez línea {seen[imp]})"})
+            else:
+                seen[imp] = line_no
+        # candidatos no usados: último segmento del import no aparece fuera de la zona de imports
+        lines = text.splitlines()
+        body = "\n".join(l for l in lines if not l.strip().startswith("import"))
+        body_lower = body.lower()
+        for imp, ln in seen.items():
+            simple = imp.rsplit(".", 1)[-1].rsplit("/", 1)[-1].lower()
+            if len(simple) < 3:
+                continue
+            if simple not in body_lower:
+                unused.append({"file": rel, "line": ln, "import": imp,
+                               "status": "HYPOTHESIS_TO_VALIDATE", "severity": "P3",
+                               "category": "unused_import_candidate",
+                               "message": f"'{simple}' no aparece fuera de la zona de imports (heurística — verificar uso indirecto)"})
+    return {
+        "files_scanned": total_files,
+        "duplicates": duplicates,
+        "wildcards": wildcards,
+        "unused_candidates": unused,
+    }
+
+FUNC_PATTERNS = {
+    ".py": re.compile(r"^def\s+(\w+)\s*\(", re.M),
+    ".kt": re.compile(r"^fun\s+(\w+)\s*\(", re.M),
+    ".java": re.compile(r"(?:public|private|protected|static|final|synchronized|\s)+[\w<>\[\],\s]+\s+(\w+)\s*\([^;]*\)\s*\{", re.M),
+    ".dart": re.compile(r"^(?:[\w<>,?\s]+\s+)?(\w+)\s*\([^;]*\)\s*\{", re.M),
+    ".rs": re.compile(r"^(?:pub\s+)?fn\s+(\w+)\s*\(", re.M),
+    ".c": re.compile(r"^[\w\s*]+\s+(\w+)\s*\([^;]*\)\s*\{", re.M),
+    ".cpp": re.compile(r"^[\w\s*:<>]+\s+(\w+)\s*\([^;]*\)\s*\{", re.M),
+}
+
+# Nombres que no son "código muerto" aunque no tengan referencias internas
+ENTRY_OR_CALLBACK = {
+    "main", "onCreate", "onStart", "onResume", "onPause", "onStop", "onDestroy",
+    "onCreateView", "onBind", "onUnbind", "onStartCommand", "configure", "initState",
+    "build", "dispose", "didChangeDependencies", "onReceive", "JNI_OnLoad",
+}
+
+def dead_code_scan(root: str | Path | None = None, max_files: int = 2000) -> list[dict[str, Any]]:
+    """Candidatos a código muerto: funciones definidas sin menciones en el resto del repo.
+    Heurística por nombre — siempre HYPOTHESIS_TO_VALIDATE."""
+    r = safe_root(root)
+    defs: list[tuple[str, str, int]] = []  # (archivo, nombre, línea)
+    files: list[tuple[Path, str]] = []
+    for p in iter_files(r):
+        if p.suffix.lower() not in FUNC_PATTERNS:
+            continue
+        text = read_text(p)
+        if not text:
+            continue
+        rel = str(p.relative_to(r))
+        files.append((p, rel))
+        for m in FUNC_PATTERNS[p.suffix.lower()].finditer(text):
+            name = m.group(1)
+            if name in ENTRY_OR_CALLBACK or len(name) < 3:
+                continue
+            line_no = text.count("\n", 0, m.start()) + 1
+            defs.append((rel, name, line_no))
+        if len(files) >= max_files:
+            break
+    # mención = nombre aparece en cualquier archivo fuera de su propia línea de definición
+    out: list[dict[str, Any]] = []
+    for rel, name, line_no in defs:
+        mentions = 0
+        for p2, rel2 in files:
+            t2 = read_text(p2)
+            if not t2:
+                continue
+            for mm in re.finditer(r"\b" + re.escape(name) + r"\b", t2):
+                ln = t2.count("\n", 0, mm.start()) + 1
+                if rel2 == rel and ln == line_no:
+                    continue  # la propia definición no cuenta
+                mentions += 1
+            if mentions > 2:
+                break
+        if mentions <= 1:
+            out.append({
+                "file": rel, "line": line_no, "symbol": name,
+                "mentions_in_repo": mentions,
+                "category": "dead_code_candidate", "severity": "P3",
+                "status": "HYPOTHESIS_TO_VALIDATE",
+                "message": f"función '{name}' sin referencias verificables (heurística — verificar reflexión/callbacks/exports)",
+            })
+    return out

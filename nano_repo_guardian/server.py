@@ -12,16 +12,18 @@ except ImportError as exc:
 # Al lanzarlo como script no hay parent package y el import relativo falla.
 try:
     from .core import (
-        analyze_log_text, apply_knowledge, architecture_smells, build_compatibility_matrix,
-        deep_snapshot, dependency_inventory, duplicate_scan, hotspot_scan, incremental_scan,
+        analyze_log_text, android_manifest_audit, apply_knowledge, architecture_smells,
+        build_compatibility_matrix, dead_code_scan, deep_snapshot, dependency_inventory,
+        duplicate_scan, hotspot_scan, imports_audit, incremental_scan,
         inventory, load_knowledge, record_verified_outcome, risk_scan, search_code,
         syntax_scan, verify,
     )
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from nano_repo_guardian.core import (
-        analyze_log_text, apply_knowledge, architecture_smells, build_compatibility_matrix,
-        deep_snapshot, dependency_inventory, duplicate_scan, hotspot_scan, incremental_scan,
+        analyze_log_text, android_manifest_audit, apply_knowledge, architecture_smells,
+        build_compatibility_matrix, dead_code_scan, deep_snapshot, dependency_inventory,
+        duplicate_scan, hotspot_scan, imports_audit, incremental_scan,
         inventory, load_knowledge, record_verified_outcome, risk_scan, search_code,
         syntax_scan, verify,
     )
@@ -126,6 +128,25 @@ def run_verification(check: str, timeout: int = 180) -> dict:
     Checks disponibles: git_diff_check, cargo_check, cargo_fmt_check, cargo_clippy, dart_analyze, flutter_analyze, go_test."""
     return verify(check, ROOT, timeout)
 
+@mcp.tool()
+def android_manifest_audit_tool() -> list[dict]:
+    """Audita AndroidManifest.xml con parseo XML real: permisos peligrosos conocidos, componentes exportados
+    (explícito o implícito por intent-filter), usesCleartextTraffic, allowBackup, debuggable, providers expuestos.
+    Cubre la sección de permisos/seguridad Android de una auditoría completa."""
+    return android_manifest_audit(ROOT)
+
+@mcp.tool()
+def imports_audit_tool() -> dict:
+    """Audita imports por archivo: duplicados (CONFIRMED), wildcards y candidatos a no usados (HYPOTHESIS_TO_VALIDATE).
+    La heurística de no-usados compara el último segmento del import contra el cuerpo del archivo — verificar antes de borrar."""
+    return imports_audit(ROOT)
+
+@mcp.tool()
+def dead_code_scan_tool(max_files: int = 2000) -> list[dict]:
+    """Candidatos a código muerto: funciones definidas sin menciones en el resto del repo (heurística por nombre).
+    Siempre HYPOTHESIS_TO_VALIDATE P3 — la reflexión, callbacks, exports y entry points pueden falsear el conteo."""
+    return dead_code_scan(ROOT, max_files)
+
 @mcp.prompt()
 def universal_deep_audit() -> str:
     return """Actúa como auditor principal de QA/forensia de código.
@@ -136,17 +157,19 @@ Orden obligatorio:
 3. syntax_and_malformed_scan
 4. compatibility_matrix + dependencies
 5. architecture_risks + hotspot_files + duplicate_code_scan
-6. risk_boundaries
-7. repo_search dirigido sobre candidatos P0/P1
-8. correlaciona logs suministrados con analyze_log
-9. reconstruye grafos de runtime/ciclo de vida/propiedad
-10. clasifica cada afirmación:
+6. android_manifest_audit_tool (si hay AndroidManifest.xml)
+7. imports_audit_tool + dead_code_scan_tool
+8. risk_boundaries
+9. repo_search dirigido sobre candidatos P0/P1
+10. correlaciona logs suministrados con analyze_log
+11. reconstruye grafos de runtime/ciclo de vida/propiedad
+12. clasifica cada afirmación:
     CONFIRMED / HYPOTHESIS_TO_VALIDATE / DISCARDED / INFORMATIONAL
-11. separa síntoma de causa raíz
-12. crea grafo de dependencias de bugs
-13. genera sprints de corrección de bugs
-14. propone corrección mínima antes que refactor estructural
-15. define verificación antes/después, regresión y rollback
+13. separa síntoma de causa raíz
+14. crea grafo de dependencias de bugs
+15. genera sprints de corrección de bugs
+16. propone corrección mínima antes que refactor estructural
+17. define verificación antes/después, regresión y rollback
 
 Nunca llames bug confirmado a un patrón sin evidencia.
 Nunca llames PASS a un fix solo porque el build compila.

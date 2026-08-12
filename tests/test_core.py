@@ -4,9 +4,9 @@ import unittest
 from pathlib import Path
 
 from nano_repo_guardian.core import (
-    analyze_log_text, apply_knowledge, architecture_smells,
-    build_compatibility_matrix, dependency_inventory, duplicate_scan,
-    hotspot_scan, inventory, record_verified_outcome, risk_scan,
+    analyze_log_text, android_manifest_audit, apply_knowledge, architecture_smells,
+    build_compatibility_matrix, dead_code_scan, dependency_inventory, duplicate_scan,
+    hotspot_scan, imports_audit, inventory, record_verified_outcome, risk_scan,
     search_code, syntax_scan, verify, load_knowledge
 )
 
@@ -123,6 +123,72 @@ E BLASTBufferQueue: Can't acquire next buffer
                 record_verified_outcome(f"fp{i}","FALSE_POSITIVE",r)
             kb=load_knowledge(r)
             self.assertLessEqual(len(kb["fix_outcomes"]),500)
+
+    def test_android_manifest_audit(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            (r/"AndroidManifest.xml").write_text(
+                '<manifest xmlns:android="http://schemas.android.com/apk/res/android">'
+                '<uses-permission android:name="android.permission.CAMERA"/>'
+                '<application android:debuggable="true" android:usesCleartextTraffic="true">'
+                '<activity android:name=".Main" android:exported="true"/>'
+                '<receiver android:name=".Rcv"><intent-filter/></receiver>'
+                '</application></manifest>',encoding="utf-8")
+            out=android_manifest_audit(r)
+            cats={x["category"] for x in out}
+            self.assertIn("manifest_permission",cats)
+            self.assertIn("manifest_debuggable",cats)
+            self.assertIn("manifest_cleartext",cats)
+            self.assertIn("manifest_exported",cats)
+            # permiso peligroso = HYPOTHESIS_TO_VALIDATE, no INFORMATIONAL
+            perm=[x for x in out if x["category"]=="manifest_permission"][0]
+            self.assertEqual(perm["status"],"HYPOTHESIS_TO_VALIDATE")
+
+    def test_android_manifest_malformed(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            (r/"AndroidManifest.xml").write_text("<manifest><broken>",encoding="utf-8")
+            out=android_manifest_audit(r)
+            self.assertTrue(any(x["category"]=="manifest_malformed" for x in out))
+
+    def test_imports_audit_duplicates_and_wildcard(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            (r/"a.kt").write_text(
+                "import kotlinx.coroutines.flow.Flow\n"
+                "import kotlinx.coroutines.flow.Flow\n"
+                "import java.util.*\n"
+                "fun main(){ println(\"x\") }\n",encoding="utf-8")
+            out=imports_audit(r)
+            self.assertEqual(len(out["duplicates"]),1)
+            self.assertEqual(out["duplicates"][0]["status"],"CONFIRMED")
+            self.assertEqual(len(out["wildcards"]),1)
+
+    def test_imports_audit_unused_candidate(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            (r/"a.kt").write_text(
+                "import com.example.UnusedThing\n"
+                "fun main(){ val x = 1 }\n",encoding="utf-8")
+            out=imports_audit(r)
+            self.assertGreaterEqual(len(out["unused_candidates"]),1)
+            cand=out["unused_candidates"][0]
+            self.assertEqual(cand["status"],"HYPOTHESIS_TO_VALIDATE")
+
+    def test_dead_code_scan(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            (r/"a.kt").write_text(
+                "fun helperMuerto(){ println(\"nadie me llama\") }\n"
+                "fun usado(){ helperMuerto() }\n",encoding="utf-8")
+            out=dead_code_scan(r)
+            names={x["symbol"] for x in out}
+            # 'helperMuerto' tiene 1 mención (la llamada en 'usado') + su definición excluida
+            # -> <=1 mención fuera de definición la convierte en candidata... 'usado' tiene 0 menciones
+            self.assertIn("usado",names)
+            # cada candidato debe ser HYPOTHESIS_TO_VALIDATE
+            self.assertTrue(all(x["status"]=="HYPOTHESIS_TO_VALIDATE" for x in out))
+            self.assertTrue(all(x["severity"]=="P3" for x in out))
 
 if __name__=="__main__":
     unittest.main()

@@ -26,6 +26,27 @@ Clasifica cada hallazgo:
 - DISCARDED
 - INFORMATIONAL
 
+## Reglas de veracidad (obligatorias)
+Toda afirmación debe llevar una de estas marcas cuando no hay evidencia cerrada:
+
+- **NO VERIFICADO** — la afirmación no se pudo comprobar contra el código, el runtime o la documentación. No usar como base para un fix.
+- **REQUIERE PRUEBA DINÁMICA** — solo se confirma ejecutando: fuga de memoria, race condition, deadlock, timeout, bloqueo, lógica de runtime. El análisis estático no basta. Prohibido dar CONFIRMED sin la ejecución.
+- **REQUIERE VERIFICACIÓN DE COMPATIBILIDAD** — versiones, SDKs, librerías, ABIs, repos upstream. Antes de recomendar o afirmar compatibilidad: verificar contra repos reales, releases oficiales, changelogs. Nunca inventar versiones ni afirmar "es compatible" sin fuente.
+
+Además:
+- Si una dimensión se revisó y no produjo hallazgos verificables, declararlo: "revisado, sin hallazgos verificables". Prohibido omitir secciones en silencio.
+- Distinguir "observado" de "inferido". Un patrón de código es una pista, no una prueba.
+
+## Ciclo iterativo de corrección (obligatorio)
+Cada hallazgo vive en un estado:
+PENDIENTE → EN CORRECCIÓN → APROBADO / BLOQUEADO
+
+Reglas:
+- Corregir solo PENDIENTE con causa raíz confirmada.
+- Después de cada corrección: probar. Si falla, seguir corrigiendo hasta solucionar o declarar BLOQUEADO con motivo y evidencia.
+- APROBADO solo con verificación (ver verification-gatekeeper). Prohibido marcar APROBADO con verificación pendiente.
+- Nunca saltar de "corregido" a "cerrado" sin la prueba intermedia.
+
 ## Dimensiones de auditoría
 1. sintaxis y código/config malformado
 2. imports, símbolos sin resolver y código muerto
@@ -258,3 +279,46 @@ ROOT_CAUSE_CONFIRMED
 → REGRESSION_PASS
 
 De lo contrario: PARTIAL / FAIL / UNVERIFIED.
+
+## Bloque reforzado: cuellos de botella y errores lógicos
+Analizar de forma exhaustiva antes de cerrar la dimensión de rendimiento:
+
+Cuellos de botella:
+1. complejidad asintótica real — contar loops anidados, escaneos dentro de loops (O(n²) oculto), repetición de trabajo
+2. I/O en el camino caliente — operaciones de disco/red/binder por frame, por token, por evento
+3. serialización redundante — encode/decode/copia de buffers repetida entre capas
+4. polling vs push — sondeos a intervalos fijos cuando existe un mecanismo de eventos
+5. contención — locks amplios, colas compartidas sin partición, unbounded queues
+6. backpressure — productor sin cota, consumidor sin límite, memoria crece sin tope
+7. hot path nativo — copias JNI, JNIEnv::Get/Release por campo, GlobalRefs acumulados
+8. rendering — rebuilds de Flutter, layouts anidados, sombras/difuminados costosos, texture uploads
+
+Errores lógicos (tres categorías):
+- **de algoritmo**: off-by-one, condición invertida, orden de operaciones, caso borde no cubierto (vacio/cero/nulo/límite)
+- **de programación**: estado mutado fuera de su máquina, flag nunca reseteado, retorno temprano que salta limpieza, error tragado
+- **de planeación/orquestación**: dependencia invertida, orden de arranque, señal de ready incorrecta, recurso usado antes de crearse o después de liberarse
+
+Para cada sospechoso: registrar ENTRADA → PROCESAMIENTO → SALIDA esperada vs real. La falla lógica necesita reproducción con datos concretos, no solo lectura del código.
+
+## Bloque reforzado: código limpio y mantenibilidad
+Cada hallazgo de limpieza debe incluir su **Impacto en mantenibilidad**: qué tarea concreta se vuelve más cara o más arriesgada si no se corrige (p. ej. "cada cambio del parser toca 3 copias del mismo bloque").
+
+Lista de verificación:
+- funciones con más de una responsabilidad
+- parámetros booleanos de control de flujo (mala señal de cohesión)
+- números mágicos sin constante nombrada
+- comentarios que mienten o quedaron obsoletos
+- nombres que no dicen qué hace la función
+- dependencias circulares entre módulos
+- estado global mutable sin dueño
+- interfaces que exponen más de lo que el consumidor necesita
+
+## Bloque reforzado: componentes redundantes
+Cuando se detecte duplicación o solapamiento, resolver con criterio explícito:
+
+1. listar TODAS las instancias del componente redundante (archivo, símbolo, quién lo usa)
+2. decidir CUÁL se conserva — criterio: la más usada, la mejor probada, la más cercana al flujo canónico
+3. decir QUÉ se elimina y CÓMO migran los consumidores (adapter temporal si hace falta)
+4. cuantificar el RIESGO de eliminar (consumidores ocultos, reflexión, config, ABI)
+
+Prohibido eliminar duplicados sin este registro. La duplicación a veces es intencional (fork, compatibilidad) — verificarlo antes de proponer borrado.
