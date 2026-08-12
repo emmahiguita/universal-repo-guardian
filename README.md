@@ -43,7 +43,7 @@ Tres pilares:
 ```mermaid
 flowchart LR
     subgraph Agente["Agente de IA"]
-        AG["Claude Code · OpenCode · otros"]
+        AG["Agente de IA"]
     end
     subgraph MCP["Servidor MCP · nano_repo_guardian"]
         SRV["server.py — 25 tools"]
@@ -323,7 +323,7 @@ Python usa AST (kind `function`); Kotlin produce `symbol_candidate` hasta verifi
 ### MCP server
 
 1. Copiar `nano_repo_guardian/` a una ubicación estable (ej. `~/.claude/mcp-servers/nano-repo-guardian/`).
-2. Registrar en el archivo de configuración del agente (`~/.claude/.claude.json` en Claude Code), bajo la clave raíz `mcpServers`:
+2. Registrar en el archivo de configuración del agente (`~/.claude/.claude.json` en tu agente), bajo la clave raíz `mcpServers`:
 
 ```json
 "nano-repo-guardian": {
