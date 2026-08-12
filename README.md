@@ -86,6 +86,48 @@ nano-repo-guardian
 ```
 
 ## Flujo de trabajo sugerido
+
+```mermaid
+flowchart TD
+    subgraph F1["1. Descubrimiento"]
+        A["repo_inventory"]
+        B["semantic_program_snapshot"]
+        C["syntax_and_malformed_scan"]
+    end
+    subgraph F2["2. Contexto"]
+        D["compatibility_matrix"]
+        E["dependencies"]
+        F["toolchain_status"]
+    end
+    subgraph F3["3. Arquitectura y riesgo"]
+        G["architecture_risks"]
+        H["hotspot_files"]
+        I["duplicate_code_scan"]
+        J["risk_boundaries"]
+        K["resource_ownership_audit"]
+        L["repo_search"]
+    end
+    subgraph F4["4. Runtime"]
+        M["analyze_log"]
+    end
+    subgraph F5["5. Corrección"]
+        N["reconstruir causa raíz"]
+        O["generar sprint de corrección"]
+        P["patch mínimo"]
+    end
+    subgraph F6["6. Verificación y aprendizaje"]
+        Q["run_verification"]
+        R{"Veredicto"}
+        S["validación runtime / regresión"]
+        T["learn_verified_outcome"]
+    end
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M
+    M --> N --> O --> P --> Q --> R
+    R -->|"PARTIAL / FAIL"| O
+    R -->|"PASS"| S --> T
+```
+
 1. `repo_inventory`
 2. Graphify si `graphify-out/graph.json` existe
 3. `syntax_and_malformed_scan`
