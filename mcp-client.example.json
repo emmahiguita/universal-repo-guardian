@@ -1,9 +1,13 @@
 {
   "mcpServers": {
-    "universal-repo-guardian": {
-      "command": "nano-repo-guardian",
+    "nano-repo-guardian": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "C:\\Users\\<usuario>\\.claude\\mcp-servers\\nano-repo-guardian\\nano_repo_guardian\\server.py"
+      ],
       "env": {
-        "NANO_REPO_ROOT": "C:\\path\\to\\repository"
+        "NANO_REPO_ROOT": "C:\\ruta\\al\\repositorio"
       }
     }
   }

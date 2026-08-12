@@ -7,7 +7,7 @@ from nano_repo_guardian.core import (
     analyze_log_text, apply_knowledge, architecture_smells,
     build_compatibility_matrix, dependency_inventory, duplicate_scan,
     hotspot_scan, inventory, record_verified_outcome, risk_scan,
-    search_code, syntax_scan
+    search_code, syntax_scan, verify, load_knowledge
 )
 
 class GuardianV2Tests(unittest.TestCase):
@@ -87,6 +87,42 @@ E BLASTBufferQueue: Can't acquire next buffer
             r=Path(td)
             (r/"a.kt").write_text("class WorkerClient",encoding="utf-8")
             self.assertEqual(len(search_code("WorkerClient",r)),1)
+
+    def test_invalid_outcome_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            with self.assertRaises(ValueError):
+                record_verified_outcome("fp","GUESS",r)
+
+    def test_empty_fingerprint_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            with self.assertRaises(ValueError):
+                record_verified_outcome("   ","CONFIRMED",r)
+
+    def test_knowledge_version_increments(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            (r/"x.c").write_text("void f(){ fork(); }",encoding="utf-8")
+            fp=risk_scan(r)[0]["fingerprint"]
+            first=record_verified_outcome(fp,"CONFIRMED",r)
+            second=record_verified_outcome(fp,"FIX_PASS",r)
+            self.assertEqual(second["knowledge_version"],first["knowledge_version"]+1)
+            kb=load_knowledge(r)
+            self.assertGreater(kb["verified_patterns"].get(fp,0),0)
+
+    def test_verify_allowlist_rejects_unknown(self):
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaises(ValueError):
+                verify("rm -rf /",Path(td))
+
+    def test_fix_outcomes_capped(self):
+        with tempfile.TemporaryDirectory() as td:
+            r=Path(td)
+            for i in range(510):
+                record_verified_outcome(f"fp{i}","FALSE_POSITIVE",r)
+            kb=load_knowledge(r)
+            self.assertLessEqual(len(kb["fix_outcomes"]),500)
 
 if __name__=="__main__":
     unittest.main()

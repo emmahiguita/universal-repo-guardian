@@ -1,64 +1,64 @@
 ---
 name: adaptive-bug-intelligence
-description: Use when recording or ranking verified bug outcomes across audits — confirmed bugs, false positives, fix pass/fail, regression memory, rule promotion/demotion, knowledge versioning in .repo-guardian/knowledge.json.
+description: Usar al registrar o rankear resultados verificados de bugs entre auditorías — bugs confirmados, falsos positivos, fixes aprobados/fallidos, memoria de regresión, promoción/degradación de reglas, versionado de conocimiento en .repo-guardian/knowledge.json.
 ---
 
 # ADAPTIVE BUG INTELLIGENCE
 
-## Purpose
-Improve detection quality over time without unsafe self-modification.
+## Propósito
+Mejorar la calidad de detección con el tiempo sin auto-modificación insegura.
 
-## Learning inputs
-- confirmed bugs
-- false positives
-- fix pass/fail
-- regressions
-- incident fingerprints
-- verified compatibility outcomes
+## Entradas de aprendizaje
+- bugs confirmados
+- falsos positivos
+- fixes aprobados/fallidos
+- regresiones
+- fingerprints de incidentes
+- resultados de compatibilidad verificados
 
-## Learning principles
-- evidence-gated
-- versioned
+## Principios de aprendizaje
+- con evidencia
+- versionado
 - reversible
-- repository-local
-- explainable
+- local al repositorio
+- explicable
 
-## Never learn from
-- an unverified model guess
-- a build warning alone
-- a single pattern match
-- a failed test with unknown cause
+## Nunca aprender de
+- una suposición no verificada del modelo
+- un warning de build por sí solo
+- un match de patrón único
+- un test fallido con causa desconocida
 
-## Knowledge fields
+## Campos de conocimiento
 fingerprint
-category
-context
-root cause
+categoría
+contexto
+causa raíz
 fix
-verification
-false-positive count
-confirmation count
-regression links
+verificación
+conteo de falsos positivos
+conteo de confirmaciones
+enlaces de regresión
 
-## Adaptive ranking
-Raise confidence slightly for repeated verified patterns.
-Lower confidence for verified false positives.
-Never turn confidence into proof.
+## Ranking adaptativo
+Subir confianza levemente con patrones verificados repetidos.
+Bajar confianza con falsos positivos verificados.
+Nunca convertir confianza en prueba.
 
-## Regression memory
-If component X previously caused regression Y, future changes to X should recommend Y as a targeted regression check.
+## Memoria de regresión
+Si el componente X causó antes la regresión Y, cambios futuros en X deben recomendar Y como chequeo de regresión dirigido.
 
-## Failed-fix memory
-Record failed corrections so they are not repeated without new evidence.
+## Memoria de fixes fallidos
+Registrar correcciones fallidas para no repetirlas sin evidencia nueva.
 
-## Rule promotion
+## Promoción de reglas
 EXPERIMENTAL → OBSERVED → RELIABLE
-only after multiple independently verified cases.
+solo tras múltiples casos verificados independientemente.
 
-## Rule demotion
+## Degradación de reglas
 RELIABLE → REVIEW → LOW_CONFIDENCE
-when false positives rise.
+cuando suben los falsos positivos.
 
-## Versioning
-Every knowledge mutation increments a knowledge version.
-Every audit should record repository commit + guardian version + knowledge version.
+## Versionado
+Cada mutación de conocimiento incrementa la versión de conocimiento.
+Cada auditoría debe registrar commit del repositorio + versión del guardian + versión de conocimiento.

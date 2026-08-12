@@ -7,12 +7,24 @@
       "DISCARDED",
       "INFORMATIONAL"
     ],
+    "evidence_states_es": {
+      "CONFIRMED": "Bug verificado con evidencia reproducible",
+      "HYPOTHESIS_TO_VALIDATE": "Patrón o sospecha pendiente de validación",
+      "DISCARDED": "Descartado tras investigación",
+      "INFORMATIONAL": "Dato informativo, no defecto"
+    },
     "verification_states": [
       "PASS",
       "PARTIAL",
       "FAIL",
       "UNVERIFIED"
-    ]
+    ],
+    "verification_states_es": {
+      "PASS": "Todos los gates aplicables superados",
+      "PARTIAL": "Algunos gates superados, otros pendientes",
+      "FAIL": "Algún gate crítico falla",
+      "UNVERIFIED": "Sin evidencia suficiente para veredicto"
+    }
   },
   "learning_outcomes": [
     "CONFIRMED",

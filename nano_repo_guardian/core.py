@@ -50,69 +50,69 @@ SEVERITY_WEIGHTS = {
 }
 
 RISK_RULES = [
-    # Syntax / malformed markers
+    # Marcadores de sintaxis / malformación
     ("merge_conflict", "P0", re.compile(r"^(<<<<<<<|=======|>>>>>>>)", re.M),
-     "Unresolved merge conflict marker"),
+     "Marcador de conflicto de merge sin resolver"),
     ("todo_fixme", "P3", re.compile(r"\b(TODO|FIXME|HACK|XXX)\b"),
-     "Incomplete/temporary implementation marker"),
-    # Error handling
+     "Marcador de implementación incompleta o temporal"),
+    # Manejo de errores
     ("empty_catch", "P1", re.compile(r"catch\s*\([^)]*\)\s*\{\s*\}", re.S),
-     "Exception is swallowed without handling"),
+     "Excepción tragada sin manejo"),
     ("broad_catch", "P2", re.compile(r"catch\s*\(\s*(?:Exception|Throwable|dynamic|e)\b"),
-     "Broad exception handling may hide root cause"),
+     "Captura amplia puede ocultar la causa raíz"),
     ("ignored_result", "P2", re.compile(r"\blet\s+_\s*=\s*[^;]+;|(?:^|\s)_\s*=\s*[^;\n]+", re.M),
-     "Result intentionally ignored; verify error propagation"),
-    # Blocking / orchestration
+     "Resultado ignorado a propósito; verificar propagación de errores"),
+    # Bloqueo / orquestación
     ("fixed_sleep", "P2", re.compile(r"\b(Thread\.sleep|sleep\(|usleep\(|Future\.delayed)\b"),
-     "Fixed delay used; verify it is not a readiness/synchronization substitute"),
+     "Delay fijo usado; verificar que no sustituye señal de readiness/sincronización"),
     ("infinite_loop", "P1", re.compile(r"\bwhile\s*\(\s*true\s*\)|\bwhile\s+true\b|\bfor\s*\(\s*;\s*;\s*\)"),
-     "Potential unbounded loop"),
+     "Bucle potencialmente sin salida"),
     ("process_spawn", "P1", re.compile(r"\b(fork|execve|execl|execvp|waitpid|setsid|ProcessBuilder|Runtime\.exec|subprocess\.)\b"),
-     "Process lifecycle boundary"),
+     "Frontera de ciclo de vida de proceso"),
     ("kill_force", "P2", re.compile(r"\b(SIGKILL|kill\s+-9|pkill\s+-9)\b"),
-     "Forceful process termination; verify graceful shutdown and reaping"),
-    # Native memory / FFI
+     "Terminación forzada de proceso; verificar apagado limpio y reapado"),
+    # Memoria nativa / FFI
     ("native_alloc", "P1", re.compile(r"\b(malloc|calloc|realloc|free|new\s+|delete\s+|mmap|munmap)\b"),
-     "Native memory ownership boundary"),
+     "Frontera de propiedad de memoria nativa"),
     ("unsafe_copy", "P1", re.compile(r"\b(strcpy|strcat|sprintf|gets|memcpy)\b"),
-     "Unsafe or size-sensitive native memory operation"),
+     "Operación de memoria nativa insegura o sensible a tamaño"),
     ("native_loader", "P1", re.compile(r"\b(dlopen|dlsym|dlclose|System\.loadLibrary|System\.load)\b"),
-     "Dynamic native loading boundary"),
+     "Frontera de carga dinámica nativa"),
     ("jni_boundary", "P1", re.compile(r"\b(JNIEnv|JNIEXPORT|JNI_OnLoad|external\s+fun|@JvmStatic\s+external)\b"),
-     "JNI ownership/error boundary"),
+     "Frontera de propiedad/errores JNI"),
     ("ffi_boundary", "P1", re.compile(r"\b(DynamicLibrary\.open|Pointer<|ffi\.|Foreign Function|extern \"C\")\b"),
-     "FFI ownership/ABI boundary"),
-    # Concurrency
+     "Frontera de propiedad/ABI FFI"),
+    # Concurrencia
     ("lock_usage", "P2", re.compile(r"\b(Mutex|mutex|synchronized|Semaphore|ReentrantLock|pthread_mutex|RwLock|Arc<Mutex)\b"),
-     "Locking/concurrency boundary"),
+     "Frontera de bloqueo/concurrencia"),
     ("global_mutable", "P2", re.compile(r"\b(static\s+mut|var\s+\w+\s*=\s*mutable|late\s+var|companion object)\b"),
-     "Potential shared mutable state"),
-    # Networking
+     "Estado mutable compartido potencial"),
+    # Red
     ("network_local", "P2", re.compile(r"\b(localhost|127\.0\.0\.1|0\.0\.0\.0|5901|6000|DISPLAY)\b"),
-     "Network/display endpoint; verify ownership, exposure, timeout and cleanup"),
+     "Endpoint de red/display; verificar propiedad, exposición, timeout y limpieza"),
     ("network_retry", "P2", re.compile(r"\b(retry|reconnect|backoff|keepalive)\b", re.I),
-     "Reconnect/retry policy boundary"),
+     "Frontera de política de reconexión/retry"),
     ("trust_all_tls", "P0", re.compile(r"(danger_accept_invalid_certs|TrustAll|HostnameVerifier\s*\{\s*true|CERT_NONE)", re.I),
-     "TLS verification may be disabled"),
-    # Paths / permissions
+     "Verificación TLS posiblemente deshabilitada"),
+    # Rutas / permisos
     ("hardcoded_android_path", "P2", re.compile(r"/data/(?:data|user/0)/[\w.\-]+"),
-     "Hardcoded Android sandbox path"),
+     "Ruta sandbox de Android hardcodeada"),
     ("hardcoded_absolute_path", "P3", re.compile(r"(?:^|[\"'])(/[A-Za-z0-9_.-]+/|[A-Za-z]:\\\\)"),
-     "Absolute path may reduce portability"),
+     "Ruta absoluta puede reducir portabilidad"),
     ("shell_injection", "P0", re.compile(r"(?:sh\s+-c|bash\s+-c|Runtime\.exec|ProcessBuilder)[^\n]*(?:\+|\$\{|format\(|f\")"),
-     "Potential command construction from dynamic input"),
+     "Construcción de comando posiblemente desde entrada dinámica"),
     # UI / Flutter / Android
     ("flutter_dispose", "P2", re.compile(r"\b(StreamController|AnimationController|TextEditingController|FocusNode)\b"),
-     "Disposable Flutter resource; verify dispose/close"),
+     "Recurso Flutter desechable; verificar dispose/close"),
     ("android_context", "P2", re.compile(r"\b(Activity|Context)\b"),
-     "Android lifecycle/context ownership boundary"),
+     "Frontera de propiedad de contexto/ciclo de vida Android"),
     ("surface_pipeline", "P2", re.compile(r"\b(SurfaceView|TextureView|PlatformView|SurfaceTexture|ImageReader|BufferQueue)\b"),
-     "Surface/render lifecycle boundary"),
-    # SQL / data
+     "Frontera de ciclo de vida de Surface/render"),
+    # SQL / datos
     ("sql_dynamic", "P0", re.compile(r"(SELECT|INSERT|UPDATE|DELETE).*(?:\+|\$\{|format\(|f\")", re.I),
-     "Potential dynamic SQL construction"),
+     "Construcción dinámica de SQL potencial"),
     ("transaction", "P2", re.compile(r"\b(transaction|BEGIN TRANSACTION|commit\(|rollback\()\b", re.I),
-     "Transactional data consistency boundary"),
+     "Frontera de consistencia transaccional de datos"),
 ]
 
 LOG_RULES = [
@@ -260,6 +260,17 @@ def syntax_scan(root: str | Path | None = None, only_files: list[str] | None = N
                 })
     return out
 
+def _line_number(line_starts: list[int], pos: int) -> int:
+    """Búsqueda binaria del número de línea para una posición de carácter."""
+    lo, hi = 0, len(line_starts) - 1
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if line_starts[mid] <= pos:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo + 1
+
 def risk_scan(root: str | Path | None = None, max_findings: int = 1500, only_files: list[str] | None = None) -> list[dict[str, Any]]:
     r = safe_root(root)
     only = set(only_files) if only_files else None
@@ -273,12 +284,18 @@ def risk_scan(root: str | Path | None = None, max_findings: int = 1500, only_fil
             continue
         lines = text.splitlines()
         rel = str(p.relative_to(r))
+        # Offsets de inicio de línea precomputados: evita O(n·m) de text.count() por cada match
+        line_starts = [0]
+        pos = text.find("\n")
+        while pos != -1:
+            line_starts.append(pos + 1)
+            pos = text.find("\n", pos + 1)
         for category, severity, pattern, rationale in RISK_RULES:
             for m in pattern.finditer(text):
                 seq += 1
-                line_no = text.count("\n", 0, m.start()) + 1
+                line_no = _line_number(line_starts, m.start())
                 snippet = lines[line_no-1].strip() if 0 < line_no <= len(lines) else m.group(0)
-                # Pattern scans are hypotheses unless deterministic (merge conflict)
+                # Los escaneos por patrón son hipótesis salvo que exista evidencia determinística (merge conflict)
                 status = "CONFIRMED" if category == "merge_conflict" else "HYPOTHESIS_TO_VALIDATE"
                 confidence = 1.0 if status == "CONFIRMED" else 0.45
                 fp = _fingerprint(category, rel, re.sub(r"\s+"," ",snippet)[:200])
@@ -357,14 +374,14 @@ def architecture_smells(root: str | Path | None = None) -> list[dict[str, Any]]:
         if row["lines"] >= 1200:
             out.append({
                 "category":"god_file_candidate","severity":"P2","status":"HYPOTHESIS_TO_VALIDATE",
-                "file":row["file"],"evidence":f'{row["lines"]} lines',
-                "recommendation":"Inspect responsibility count, fan-in/fan-out and lifecycle ownership before refactoring."
+                "file":row["file"],"evidence":f'{row["lines"]} líneas',
+                "recommendation":"Inspeccionar número de responsabilidades, fan-in/fan-out y propiedad del ciclo de vida antes de refactorizar."
             })
         if row["branch_proxy"] >= 100:
             out.append({
                 "category":"high_branch_complexity","severity":"P2","status":"HYPOTHESIS_TO_VALIDATE",
                 "file":row["file"],"evidence":f'branch proxy={row["branch_proxy"]}',
-                "recommendation":"Inspect state machine/branch decomposition and test coverage."
+                "recommendation":"Inspeccionar descomposición de máquina de estados/ramas y cobertura de pruebas."
             })
     return out
 
@@ -569,9 +586,11 @@ def record_verified_outcome(
     fix: str = "",
     evidence: str = "",
 ) -> dict[str,Any]:
-    """Learn only from explicit verified feedback. Writes only .repo-guardian/knowledge.json."""
+    """Aprende solo de feedback explícito verificado. Escribe únicamente .repo-guardian/knowledge.json."""
+    if not fingerprint or not fingerprint.strip():
+        raise ValueError("fingerprint no puede estar vacío")
     if outcome not in {"CONFIRMED","FALSE_POSITIVE","FIX_PASS","FIX_FAIL","REGRESSION"}:
-        raise ValueError("invalid outcome")
+        raise ValueError("outcome inválido: usar CONFIRMED, FALSE_POSITIVE, FIX_PASS, FIX_FAIL o REGRESSION")
     data=load_knowledge(root)
     if outcome=="CONFIRMED":
         data["verified_patterns"][fingerprint]=data["verified_patterns"].get(fingerprint,0)+1
@@ -581,6 +600,9 @@ def record_verified_outcome(
         "fingerprint":fingerprint,"outcome":outcome,"root_cause":root_cause[:1000],
         "fix":fix[:2000],"evidence":evidence[:2000]
     })
+    # Evitar crecimiento sin límite del historial de aprendizaje
+    if len(data["fix_outcomes"]) > 500:
+        data["fix_outcomes"] = data["fix_outcomes"][-500:]
     data["version"]=int(data.get("version",1))+1
     p=knowledge_dir(root)/"knowledge.json"
     p.write_text(json.dumps(data,indent=2,ensure_ascii=False),encoding="utf-8")

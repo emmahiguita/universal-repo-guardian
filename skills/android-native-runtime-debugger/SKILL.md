@@ -1,42 +1,42 @@
 ---
 name: android-native-runtime-debugger
-description: Use when diagnosing Android/Flutter/JNI/NDK/C++ native runtime failures — Xvnc/VNC readiness, rc=126/127, ELF loader, linker namespaces, process lifecycle, zombies/orphans, BufferQueue frame backpressure, SELinux denials, Linux-on-Android environment issues.
+description: Usar al diagnosticar fallos de runtime nativo en Android/Flutter/JNI/NDK/C++ — readiness de Xvnc/VNC, rc=126/127, cargador ELF, linker namespaces, ciclo de vida de procesos, zombies/huérfanos, backpressure de frames BufferQueue, denegaciones SELinux, entorno Linux-sobre-Android.
 ---
 
 # Android Native Runtime Debugger
 
-## Mission
-Diagnose Android + Flutter + JNI/NDK + C/C++ + Linux runtime failures with process-level evidence.
+## Misión
+Diagnosticar fallos de runtime Android + Flutter + JNI/NDK + C/C++ + Linux con evidencia a nivel de proceso.
 
-## Core rules
+## Reglas centrales
 - PID_CREATED != READY
 - PORT_OPEN != PROTOCOL_READY
 - BUILD_SUCCESS != RUNTIME_SUCCESS
-- A successful fallback does not erase the primary failure
-- A fixed sleep is never the only readiness criterion when a health signal exists
+- Un fallback exitoso no borra el fallo primario
+- Un sleep fijo nunca es el único criterio de readiness cuando existe una señal de salud
 
-## Diagnostic sequence
+## Secuencia de diagnóstico
 
-### Process creation
-Capture:
-- caller process
-- worker process
-- child PID
+### Creación de proceso
+Capturar:
+- proceso llamador
+- proceso worker
+- PID hijo
 - argv
 - envp
 - cwd
-- executable path
-- loader strategy
+- ruta del ejecutable
+- estrategia de carga
 - exit code
-- signal
+- señal
 - stdout
 - stderr
 
-### Native loader
-Inspect:
+### Cargador nativo
+Inspeccionar:
 - ABI
-- ELF class
-- interpreter
+- clase ELF
+- intérprete
 - DT_NEEDED
 - SONAME
 - RPATH/RUNPATH
@@ -44,88 +44,88 @@ Inspect:
 - System.load
 - System.loadLibrary
 - dlopen
-- missing symbol
-- duplicate SONAME
+- símbolo faltante
+- SONAME duplicado
 
-### Execution failures
-Differentiate:
+### Fallos de ejecución
+Diferenciar:
 - EACCES
 - ENOENT
 - ENOEXEC
-- linker failure
-- SELinux denial
-- wrong interpreter
-- missing library
+- fallo de linker
+- denegación SELinux
+- intérprete incorrecto
+- librería faltante
 
-Rules:
-- rc=126 → investigate execution/permission policy
-- rc=127 → investigate missing executable/interpreter/library
+Reglas:
+- rc=126 → investigar política de ejecución/permisos
+- rc=127 → investigar ejecutable/intérprete/librería inexistente
 
 ### JNI
-Inspect:
-- exported names/signatures
-- thread attachment
-- local refs
-- global refs
-- pending exceptions
-- string release
+Inspeccionar:
+- nombres/firmas exportados
+- attachment de hilos
+- refs locales
+- refs globales
+- excepciones pendientes
+- liberación de strings
 - buffers
-- ownership
-- native handle lifecycle
+- propiedad
+- ciclo de vida de handles nativos
 
-### Process lifecycle
-For each process record:
-- owner
-- who starts
-- who stores PID
-- who stops
-- who reaps
-- Activity death behavior
-- service death behavior
-- process recreation behavior
+### Ciclo de vida de procesos
+Para cada proceso registrar:
+- dueño
+- quién arranca
+- quién guarda el PID
+- quién para
+- quién reapa
+- comportamiento de muerte de Activity
+- comportamiento de muerte de servicio
+- comportamiento de recreación de proceso
 
-Detect:
+Detectar:
 - zombies
-- orphans
-- duplicate workers
-- duplicate daemons
-- stale sockets
-- stale locks
-- stale PID files
+- huérfanos
+- workers duplicados
+- daemons duplicados
+- sockets obsoletos
+- locks obsoletos
+- PID files obsoletos
 
 ### Xvnc / VNC
-Ready only when:
-1. Xvnc PID alive
-2. X display available
-3. TCP 5901 open
-4. RFB handshake valid
-5. window manager starts
-6. viewer connects
+Ready solo cuando:
+1. PID de Xvnc vivo
+2. display X disponible
+3. TCP 5901 abierto
+4. handshake RFB válido
+5. window manager arranca
+6. viewer se conecta
 
 ### X11
-Ready only when:
-1. X server alive
-2. display socket/port ready
-3. DISPLAY matches
-4. X client connects
-5. frames reach the Android surface
+Ready solo cuando:
+1. servidor X vivo
+2. socket/puerto de display listo
+3. DISPLAY coincide
+4. cliente X se conecta
+5. frames llegan a la Surface de Android
 
-### Surface pipeline
-Inspect:
-- SurfaceView lifecycle
-- Texture lifecycle
-- PlatformView lifecycle
-- producer/consumer pacing
-- pending frames
-- frame release
+### Pipeline de Surface
+Inspeccionar:
+- ciclo de vida de SurfaceView
+- ciclo de vida de Texture
+- ciclo de vida de PlatformView
+- pacing productor/consumidor
+- frames pendientes
+- liberación de frames
 - latest-frame-wins
-- buffer count
-- GPU driver interaction
+- conteo de buffers
+- interacción con driver GPU
 
-`Can't acquire next buffer` should be treated as rendering backpressure until disproven.
+`Can't acquire next buffer` debe tratarse como backpressure de rendering hasta demostrar lo contrario.
 
-### Linux environment
-Validate:
+### Entorno Linux
+Validar:
 - rootfs
 - HOME
 - TMPDIR
@@ -137,36 +137,36 @@ Validate:
 - fonts
 - XKB
 - symlinks
-- permissions
+- permisos
 
-## Output
-Observed symptom:
-Earliest meaningful failure:
-Probable root cause:
-Confidence:
-Missing evidence:
-Subsystem:
-Minimal fix:
-Regression checks:
+## Salida
+Síntoma observado:
+Fallo significativo más temprano:
+Causa raíz probable:
+Confianza:
+Evidencia faltante:
+Subsistema:
+Fix mínimo:
+Chequeos de regresión:
 
 
-## v2 Additions
+## Adiciones v2
 
-### Android 14/15/16 execution analysis
-Differentiate filesystem execute permission from platform execution policy, linker namespace failure, SELinux denial, ABI mismatch and missing interpreter.
+### Análisis de ejecución Android 14/15/16
+Diferenciar permiso de ejecución del filesystem de política de ejecución de plataforma, fallo de linker namespace, denegación SELinux, desajuste ABI e intérprete faltante.
 
-### Native process readiness
-A child process is READY only after its application-level health signal succeeds.
+### Readiness de procesos nativos
+Un proceso hijo está READY solo después de que su señal de salud a nivel de aplicación tenga éxito.
 
-Examples:
-- Xvnc: PID + X display + RFB handshake
-- HTTP service: PID + socket + valid health response
-- worker: Binder connected + command round-trip
-- X11: server + display endpoint + real X client connection
+Ejemplos:
+- Xvnc: PID + display X + handshake RFB
+- Servicio HTTP: PID + socket + respuesta de salud válida
+- worker: Binder conectado + round-trip de comando
+- X11: servidor + endpoint de display + conexión real de cliente X
 
-### Renderer forensic path
-Flutter frame → PlatformView/Texture/Surface → Android BufferQueue → GPU/consumer.
-When frame acquisition saturates, inspect unreleased buffers, producer pacing, lifecycle disposal and latest-frame-wins strategy.
+### Ruta forense de renderer
+Flutter frame → PlatformView/Texture/Surface → BufferQueue Android → GPU/consumidor.
+Cuando la adquisición de frames se satura, inspeccionar buffers no liberados, pacing del productor, disposal del ciclo de vida y estrategia latest-frame-wins.
 
-### Linux/Android environment
-Audit Bionic/glibc boundaries, ELF interpreter, DT_NEEDED, LD_LIBRARY_PATH, symlink/path rewriting, PRoot assumptions, PTY, stdout/stderr and process reaping.
+### Entorno Linux/Android
+Auditar fronteras Bionic/glibc, intérprete ELF, DT_NEEDED, LD_LIBRARY_PATH, reescritura de symlinks/rutas, suposiciones de PRoot, PTY, stdout/stderr y reapado de procesos.

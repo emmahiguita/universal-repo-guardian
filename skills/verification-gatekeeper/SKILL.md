@@ -1,39 +1,39 @@
 ---
 name: verification-gatekeeper
-description: Use when claiming or verifying that a bug is fixed, code is production-ready, or an audit finding can be closed — any patch, sprint, or fix that needs a defensible PASS/PARTIAL/FAIL/UNVERIFIED verdict with evidence. Trigger words: ¿está arreglado?, ¿listo para producción?, cerrar bug, verificar fix, verificar corrección, validation gate.
+description: Usar al afirmar o verificar que un bug está arreglado, el código está listo para producción o un hallazgo de auditoría puede cerrarse — cualquier patch, sprint o fix que necesite veredicto defendible PASS/PARTIAL/FAIL/UNVERIFIED con evidencia. Disparadores: ¿está arreglado?, ¿listo para producción?, cerrar bug, verificar fix, verificar corrección, validation gate.
 ---
 
 # VERIFICATION GATEKEEPER PRO v2
 
-Final statuses:
+Estados finales:
 PASS / PARTIAL / FAIL / UNVERIFIED
 
-Never PASS from compilation alone.
+Nunca dar PASS solo por compilación.
 
-Required gates when applicable:
-1. baseline commit/environment
-2. reproduction
-3. root cause evidence
-4. minimal patch mapping
-5. syntax/static checks
+Gates requeridos cuando aplican:
+1. commit/environment de baseline
+2. reproducción
+3. evidencia de causa raíz
+4. mapeo de patch mínimo
+5. checks de sintaxis/estáticos
 6. build
-7. focused test
-8. runtime health/readiness
-9. lifecycle start/stop/restart
-10. process cleanup / waitpid / sockets / FDs
-11. memory behavior
-12. concurrency stress
-13. network failure/reconnect
-14. adjacent regression
-15. diff review
-16. rollback availability
+7. test enfocado
+8. salud/readiness de runtime
+9. ciclo de vida start/stop/restart
+10. limpieza de procesos / waitpid / sockets / FDs
+11. comportamiento de memoria
+12. stress de concurrencia
+13. fallo de red/reconexión
+14. regresión adyacente
+15. revisión del diff
+16. disponibilidad de rollback
 
-Reject fixes that:
-- hide errors with broad catch
-- disable tests
-- comment out failing code
-- replace readiness with sleeps
-- add infinite retry
-- create duplicate ownership
-- add unrelated refactor
-- claim compatibility without verification
+Rechazar fixes que:
+- ocultan errores con catch amplio
+- deshabilitan tests
+- comentan código que falla
+- reemplazan readiness con sleeps
+- añaden retry infinito
+- crean propiedad duplicada
+- añaden refactor no relacionado
+- afirman compatibilidad sin verificación

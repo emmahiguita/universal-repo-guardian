@@ -1,23 +1,27 @@
-# Agent integration
+# Integración con agentes
 
-Install/copy the Skills:
+## Skills
+Instalar/copiar a `~/.claude/skills/`:
 - nano-repo-surgeon
 - android-native-runtime-debugger
 - verification-gatekeeper
 - adaptive-bug-intelligence
 
-Recommended AGENTS.md policy:
+## MCP server
+Ver `README.md` → Instalación → MCP server (Claude Code).
+
+## Política recomendada para AGENTS.md
 
 ```md
-## Engineering QA / bug forensics
-For repository-wide debugging:
-1. Use Graphify first when `graphify-out/graph.json` exists.
-2. Run Universal Repo Guardian inventory/syntax/compatibility/hotspot/risk scans.
-3. Distinguish CONFIRMED from HYPOTHESIS_TO_VALIDATE.
-4. Reconstruct runtime, lifecycle and ownership before patching.
-5. Produce bug dependency graph + correction sprints.
-6. Prefer minimal root-cause fixes.
-7. Run verification gates and adjacent regression.
-8. Record learning only from verified outcomes.
-9. Update Graphify after code changes.
+## QA de ingeniería / forensia de bugs
+Para depuración a nivel de repositorio:
+1. Usa Graphify primero cuando exista graphify-out/graph.json.
+2. Ejecuta los escaneos de Universal Repo Guardian: inventory/syntax/compatibility/hotspot/risk.
+3. Distingue CONFIRMED de HYPOTHESIS_TO_VALIDATE.
+4. Reconstruye runtime, ciclo de vida y propiedad antes de parchear.
+5. Produce grafo de dependencias de bugs + sprints de corrección.
+6. Prefiere fixes mínimos de causa raíz.
+7. Ejecuta gates de verificación y regresión adyacente.
+8. Registra aprendizaje SOLO de resultados verificados.
+9. Actualiza Graphify después de cambios de código.
 ```

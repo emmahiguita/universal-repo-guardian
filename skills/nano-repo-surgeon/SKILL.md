@@ -1,17 +1,17 @@
 ---
 name: nano-repo-surgeon
-description: Use when auditing, diagnosing or fixing any repository with evidence-driven QA — trigger: auditar, auditoría, QA profundo, buscar bugs, corrección por sprints, clasificar CONFIRMED vs HYPOTHESIS_TO_VALIDATE, BUILD_SUCCESS != CORRECT_RUNTIME, PID_CREATED != READY, PORT_OPEN != PROTOCOL_READY.
+description: Usar cuando se audita, diagnostica o corrige cualquier repositorio con QA basada en evidencia — disparadores: auditar, auditoría, QA profundo, buscar bugs, corrección por sprints, clasificar CONFIRMED vs HYPOTHESIS_TO_VALIDATE, BUILD_SUCCESS != CORRECT_RUNTIME, PID_CREATED != READY, PORT_OPEN != PROTOCOL_READY.
 ---
 
 # UNIVERSAL REPOSITORY GUARDIAN PRO v2
 
-## Mission
-Perform deep, evidence-driven engineering QA on any repository and transform findings into verified correction sprints.
+## Misión
+Realizar QA de ingeniería profunda y basada en evidencia sobre cualquier repositorio y transformar los hallazgos en sprints de corrección verificados.
 
-## Universal scope
-Supports mixed repositories containing Android, Flutter, Kotlin, Java, Dart, Rust, C/C++, JNI/FFI/NDK/CMake, Python, JS/TS, Go, C#, Swift, web, backend, desktop, Linux, services, CI/CD and native runtimes.
+## Alcance universal
+Soporta repositorios mixtos con Android, Flutter, Kotlin, Java, Dart, Rust, C/C++, JNI/FFI/NDK/CMake, Python, JS/TS, Go, C#, Swift, web, backend, escritorio, Linux, servicios, CI/CD y runtimes nativos.
 
-## Core doctrine
+## Doctrina central
 - BUILD_SUCCESS != CORRECT_RUNTIME
 - PID_CREATED != READY
 - PORT_OPEN != PROTOCOL_READY
@@ -20,74 +20,74 @@ Supports mixed repositories containing Android, Flutter, Kotlin, Java, Dart, Rus
 - FIX_APPLIED != FIX_VERIFIED
 - CORRELATION != CAUSATION
 
-Classify every finding:
+Clasifica cada hallazgo:
 - CONFIRMED
 - HYPOTHESIS_TO_VALIDATE
 - DISCARDED
 - INFORMATIONAL
 
-## Audit dimensions
-1. syntax and malformed code/config
-2. imports, unresolved symbols and dead code
-3. algorithmic correctness
-4. business/function logic
-5. state machines
-6. lifecycle
-7. orchestration and ownership
-8. dependency injection and scopes
+## Dimensiones de auditoría
+1. sintaxis y código/config malformado
+2. imports, símbolos sin resolver y código muerto
+3. corrección algorítmica
+4. lógica de negocio/función
+5. máquinas de estado
+6. ciclo de vida
+7. orquestación y propiedad
+8. inyección de dependencias y scopes
 9. SOLID / DRY / KISS / YAGNI / SoC
-10. architecture and dependency direction
-11. dependencies, SDK/toolchain and ABI compatibility
+10. arquitectura y dirección de dependencias
+11. dependencias, SDK/toolchain y compatibilidad ABI
 12. Gradle/AGP/Kotlin/JDK
 13. Flutter/Dart
-14. Android manifest/services/processes/permissions
+14. manifest de Android/servicios/procesos/permisos
 15. C/C++/NDK/CMake
 16. JNI/FFI
-17. Linux-on-Android
-18. processes/zombies/orphans
-19. memory/heap/mmap/GPU/buffers/FD
-20. concurrency/races/deadlocks/starvation
-21. network/sockets/timeouts/retries/backoff
-22. data/schema/transactions/serialization
-23. security/injection/path traversal/TLS/secrets
-24. rendering/Surface/Texture/BufferQueue/overlap
-25. logs, stack traces and observability
-26. performance bottlenecks
-27. tests, CI/CD and regression
-28. duplicate/redundant/malformed/legacy code
-29. external repository/library risk
-30. rollback and maintainability
+17. Linux-sobre-Android
+18. procesos/zombies/huérfanos
+19. memoria/heap/mmap/GPU/buffers/FD
+20. concurrencia/races/deadlocks/inanición
+21. red/sockets/timeouts/retries/backoff
+22. datos/esquema/transacciones/serialización
+23. seguridad/inyección/path traversal/TLS/secretos
+24. rendering/Surface/Texture/BufferQueue/solapamiento
+25. logs, stack traces y observabilidad
+26. cuellos de botella de rendimiento
+27. tests, CI/CD y regresión
+28. código duplicado/redundante/malformado/legacy
+29. riesgo de repositorios/librerías externas
+30. rollback y mantenibilidad
 
-## Required forensic workflow
+## Flujo forense obligatorio
 DISCOVER
-→ MAP ARCHITECTURE
-→ MAP DEPENDENCIES
-→ MAP RUNTIME
-→ MAP OWNERSHIP
-→ MAP LIFECYCLE
-→ STATIC/SYNTAX
-→ COMPATIBILITY
-→ LOG FORENSICS
-→ REPRODUCE
-→ FIRST MEANINGFUL FAILURE
-→ ROOT CAUSE
-→ BUG DEPENDENCY GRAPH
-→ CORRECTION SPRINT
-→ MINIMAL PATCH
-→ VERIFICATION
-→ REGRESSION
-→ LEARNING
+→ MAPA DE ARQUITECTURA
+→ MAPA DE DEPENDENCIAS
+→ MAPA DE RUNTIME
+→ MAPA DE PROPIEDAD
+→ MAPA DE CICLO DE VIDA
+→ ESTÁTICO/SINTAXIS
+→ COMPATIBILIDAD
+→ FORENSIA DE LOGS
+→ REPRODUCIR
+→ PRIMER FALLO SIGNIFICATIVO
+→ CAUSA RAÍZ
+→ GRAFO DE DEPENDENCIAS DE BUGS
+→ SPRINT DE CORRECCIÓN
+→ PATCH MÍNIMO
+→ VERIFICACIÓN
+→ REGRESIÓN
+→ APRENDIZAJE
 
-## Root-cause hierarchy
-Always distinguish:
-1. primary root cause
-2. contributing condition
-3. secondary failure
-4. visible symptom
-5. log noise
+## Jerarquía de causa raíz
+Distinguir siempre:
+1. causa raíz primaria
+2. condición contribuyente
+3. fallo secundario
+4. síntoma visible
+5. ruido de log
 
-## Orchestration audit
-For every critical resource/process/service:
+## Auditoría de orquestación
+Para cada recurso/proceso/servicio crítico:
 OWNER
 CREATED_BY
 START_CONDITION
@@ -98,96 +98,96 @@ REAPER/DISPOSER
 RETRY_POLICY
 RECOVERY_POLICY
 
-Detect split-brain ownership, duplicate start/stop, shutdown races and readiness inferred from sleeps.
+Detectar propiedad dividida (split-brain), arranque/parada duplicados, races de apagado y readiness inferida de sleeps.
 
-## Memory audit
-Separate:
-- managed heap
-- Dart heap
-- Java/Kotlin heap
-- native heap
+## Auditoría de memoria
+Separar:
+- heap manejado
+- heap Dart
+- heap Java/Kotlin
+- heap nativo
 - mmap
 - GPU
 - buffers
 - file descriptors
-- child-process RSS
+- RSS de procesos hijos
 
-Look for leak trends, missing cleanup, retained contexts/listeners, JNI GlobalRefs, native allocation mismatches, mapped regions and unbounded queues.
+Buscar tendencias de fuga, limpieza faltante, contextos/listeners retenidos, GlobalRefs JNI, desajustes de asignación nativa, regiones mapeadas y colas sin cota.
 
-## Compatibility audit
-Create a matrix for:
-SDK / compiler / runtime / framework / plugin / native ABI / library.
-Local extraction is not enough for claims about current upstream compatibility; when external research is allowed, verify against official docs/repositories/releases.
+## Auditoría de compatibilidad
+Crear matriz para:
+SDK / compilador / runtime / framework / plugin / ABI nativo / librería.
+La extracción local no basta para afirmaciones sobre compatibilidad actual con upstream; cuando se permita investigación externa, verificar contra docs/repositorios/releases oficiales.
 
-## Security audit
-Look for:
-- command/shell/SQL/template injection
+## Auditoría de seguridad
+Buscar:
+- inyección de comandos/shell/SQL/plantillas
 - path traversal
-- unsafe native execution
-- exposed services/ports
-- exported Android components
-- insecure TLS
-- secrets/log leakage
-- unsafe temp files
-- dependency vulnerabilities
-- excessive permissions
+- ejecución nativa insegura
+- servicios/puertos expuestos
+- componentes Android exportados
+- TLS inseguro
+- fuga de secretos/logs
+- archivos temporales inseguros
+- vulnerabilidades de dependencias
+- permisos excesivos
 
-## UI/render audit
-Check:
-- overflow/clipping/overlap
-- touch interception
+## Auditoría de UI/render
+Revisar:
+- overflow/clipping/solapamiento
+- interceptación de toques
 - z-order
-- Surface/PlatformView lifecycle
-- frame backpressure
-- stale textures
-- producer/consumer imbalance
-- redraw/rebuild storms
+- ciclo de vida de Surface/PlatformView
+- backpressure de frames
+- texturas obsoletas
+- desbalance productor/consumidor
+- tormentas de redraw/rebuild
 
-## Self-improving behavior
-Learning is evidence-gated and versioned.
+## Comportamiento auto-mejorante
+El aprendizaje está basado en evidencia y versionado.
 
-The system may improve:
+El sistema puede mejorar:
 - ranking
 - fingerprinting
-- incident grouping
-- confidence calibration
-- duplicate detection
-- test recommendation
-- regression selection
+- agrupación de incidentes
+- calibración de confianza
+- detección de duplicados
+- recomendación de tests
+- selección de regresión
 
-It must not silently:
-- disable tests
-- ignore errors
-- auto-edit production code
-- lower security
-- upgrade dependencies
-- execute arbitrary shell commands
+No debe silenciosamente:
+- deshabilitar tests
+- ignorar errores
+- auto-editar código de producción
+- bajar seguridad
+- actualizar dependencias
+- ejecutar comandos de shell arbitrarios
 
-Learn only from explicit outcomes:
+Aprender solo de resultados explícitos:
 CONFIRMED
 FALSE_POSITIVE
 FIX_PASS
 FIX_FAIL
 REGRESSION
 
-Maintain:
+Mantener:
 .repo-guardian/knowledge.json
 
-A learned pattern changes confidence, never converts a hypothesis into CONFIRMED without current evidence.
+Un patrón aprendido cambia la confianza, nunca convierte una hipótesis en CONFIRMED sin evidencia actual.
 
-## Real-time / incremental mode
-On each code change:
+## Modo incremental / tiempo real
+En cada cambio de código:
 git diff
-→ changed files
-→ syntax/config scan
-→ risk-boundary scan
-→ impacted symbols/dependencies
-→ targeted verification
-→ log/runtime evidence if available
+→ archivos cambiados
+→ escaneo de sintaxis/config
+→ escaneo de fronteras de riesgo
+→ símbolos/dependencias impactados
+→ verificación dirigida
+→ evidencia de log/runtime si está disponible
 
-Use deep full-repo scans for releases, large PRs, SDK changes, native changes, dependency upgrades and regressions.
+Usar escaneos profundos de repo completo para releases, PRs grandes, cambios de SDK, cambios nativos, upgrades de dependencias y regresiones.
 
-## Bug report schema
+## Esquema de reporte de bug
 BUG-ID
 STATUS
 SEVERITY
@@ -217,36 +217,36 @@ REGRESSION
 ROLLBACK
 CLOSURE_GATE
 
-## Correction sprints
-Generate only relevant sprints:
+## Sprints de corrección
+Generar solo los sprints relevantes:
 SPRINT 0 — BASELINE
-SPRINT 1 — BUILD/SYNTAX BLOCKERS
-SPRINT 2 — CRASHES/SECURITY/DATA INTEGRITY
-SPRINT 3 — LOGIC/STATE
-SPRINT 4 — LIFECYCLE/ORCHESTRATION
-SPRINT 5 — PROCESSES/MEMORY
-SPRINT 6 — CONCURRENCY
-SPRINT 7 — CONNECTIVITY
-SPRINT 8 — COMPATIBILITY
-SPRINT 9 — PERFORMANCE/RENDERING
-SPRINT 10 — ARCHITECTURE/SOLID
-SPRINT 11 — CLEANUP
-SPRINT 12 — FINAL REGRESSION
+SPRINT 1 — BLOQUEADORES DE BUILD/SINTAXIS
+SPRINT 2 — CRASHES/SEGURIDAD/INTEGRIDAD DE DATOS
+SPRINT 3 — LÓGICA/ESTADO
+SPRINT 4 — CICLO DE VIDA/ORQUESTACIÓN
+SPRINT 5 — PROCESOS/MEMORIA
+SPRINT 6 — CONCURRENCIA
+SPRINT 7 — CONECTIVIDAD
+SPRINT 8 — COMPATIBILIDAD
+SPRINT 9 — RENDIMIENTO/RENDERING
+SPRINT 10 — ARQUITECTURA/SOLID
+SPRINT 11 — LIMPIEZA
+SPRINT 12 — REGRESIÓN FINAL
 
-For each sprint:
-objective
+Para cada sprint:
+objetivo
 bugs
-dependencies
-files
-forbidden scope
-risk
-implementation order
+dependencias
+archivos
+alcance prohibido
+riesgo
+orden de implementación
 tests
-exit criteria
+criterios de salida
 rollback
 
 ## Closure gate
-A bug is CLOSED only after all applicable stages:
+Un bug se CIERRA solo tras todas las etapas aplicables:
 ROOT_CAUSE_CONFIRMED
 → PATCH_APPLIED
 → STATIC_PASS
@@ -257,4 +257,4 @@ ROOT_CAUSE_CONFIRMED
 → CLEANUP_PASS
 → REGRESSION_PASS
 
-Otherwise: PARTIAL / FAIL / UNVERIFIED.
+De lo contrario: PARTIAL / FAIL / UNVERIFIED.
