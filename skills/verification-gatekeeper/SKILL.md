@@ -37,3 +37,9 @@ Rechazar fixes que:
 - crean propiedad duplicada
 - añaden refactor no relacionado
 - afirman compatibilidad sin verificación
+
+## Límite de intentos
+
+Cada fix pasa por `correction_gate`: máx 3 intentos por bug. Si la verificación no da
+PASS tras 3 intentos, el bug se declara BLOQUEADO con evidencia. Nunca reintentar
+indefinidamente ni bajar el estándar de verificación para forzar un PASS.

@@ -22,7 +22,7 @@
 4. [Modelo de evidencia](#4-modelo-de-evidencia)
 5. [Modelo de seguridad](#5-modelo-de-seguridad)
 6. [Flujo de trabajo](#6-flujo-de-trabajo)
-7. [Herramientas MCP](#7-herramientas-mcp-28)
+7. [Herramientas MCP](#7-herramientas-mcp-29)
 8. [Ejemplos y evidencia](#8-ejemplos-y-evidencia)
 9. [Instalación](#9-instalación)
 10. [Tests](#10-tests)
@@ -48,7 +48,7 @@ flowchart LR
         AG["Agente de IA"]
     end
     subgraph MCP["Servidor MCP · nano_repo_guardian"]
-        SRV["server.py — 28 tools"]
+        SRV["server.py — 29 tools"]
         CORE["core.py — facade"]
         SEM["semantic.py — AST Python"]
         LANG["language_adapters.py"]
@@ -82,7 +82,7 @@ Dos capas:
 
 ### 3.1 Servidor MCP
 
-`nano_repo_guardian/server.py` expone 28 herramientas por JSON-RPC sobre stdio. El motor está descompuesto en módulos de responsabilidad única (`scanners`, `analysis`, `semantic`, `metrics`, `cfg`, `knowledge`, `fsio`, `constants`).
+`nano_repo_guardian/server.py` expone 29 herramientas por JSON-RPC sobre stdio. El motor está descompuesto en módulos de responsabilidad única (`scanners`, `analysis`, `semantic`, `metrics`, `cfg`, `knowledge`, `fsio`, `constants`).
 
 ### 3.2 Skills
 
@@ -221,7 +221,9 @@ flowchart TD
 
 El bucle de verificación es obligatorio: si `run_verification` no da `PASS`, se vuelve al sprint de corrección. Solo se registra aprendizaje (`learn_verified_outcome`) de resultados **verificados**.
 
-## 7. Herramientas MCP (28)
+La corrección está limitada por la puerta `correction_gate`: máximo 3 intentos por bug (luego `BLOQUEADO`), y un **checkpoint humano obligatorio** cada 3 bugs corregidos, donde el agente debe parar, emitir informe y esperar tu decisión (continuar / limpiar / parar). Esto evita la corrección en bucle y la alucinación de fixes.
+
+## 7. Herramientas MCP (29)
 
 **Inventario y contexto**
 
@@ -280,6 +282,12 @@ El bucle de verificación es obligatorio: si `run_verification` no da `PASS`, se
 | `cyclomatic_complexity_report` | Complejidad ciclomática (McCabe) por función + índice de mantenibilidad. |
 | `dependency_graph_metrics` | Grafo de dependencias: centralidad, ciclos, orden topológico, camino crítico. |
 | `quantitative_risk_report` | Reporte agregado: ciclomática + grafo + concurrencia + estado + risk scores. |
+
+**Corrección**
+
+| Herramienta | Propósito |
+|---|---|
+| `correction_gate` | Puerta anti-bucle: límite de 3 intentos por bug, checkpoint humano cada N, veredicto y re-análisis. |
 
 ## 8. Ejemplos y evidencia
 

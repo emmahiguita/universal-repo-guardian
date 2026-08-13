@@ -301,6 +301,20 @@ def quantitative_risk_report() -> dict:
 # === END QUANTITATIVE METRICS ===
 
 
+# === UNIVERSAL REPO GUARDIAN CORRECTION GATE ===
+from nano_repo_guardian.correction import correction_gate as _correction_gate  # noqa: E402
+
+
+@mcp.tool()
+def correction_gate(action: str, fingerprint: str = "", verdict: str = "") -> dict:
+    """Puerta de corrección: límites anti-bucle y checkpoints humanos.
+
+    action: register_attempt | finalize | resolve_checkpoint | reset | status
+    """
+    return _correction_gate(action, fingerprint, verdict, ROOT)
+# === END CORRECTION GATE ===
+
+
 def main():
     mcp.run(transport="stdio")
 

@@ -47,6 +47,17 @@ Reglas:
 - APROBADO solo con verificación (ver verification-gatekeeper). Prohibido marcar APROBADO con verificación pendiente.
 - Nunca saltar de "corregido" a "cerrado" sin la prueba intermedia.
 
+## Límites anti-bucle y checkpoints (obligatorio — tool `correction_gate`)
+
+La corrección NO es libre. Todo intento pasa por la puerta `correction_gate`, que
+persiste estado en `.repo-guardian/sprint_state.json` y RECHAZA exceder los límites:
+
+- **Máx 3 intentos por bug.** Antes de cada fix: `correction_gate(action="register_attempt", fingerprint=...)`. Si devuelve error (isError), el bug está BLOQUEADO o hay checkpoint pendiente: no se toca nada más.
+- **Checkpoint humano cada 3 bugs corregidos.** Al cerrar 3 bugs con `verdict="PASS"` la puerta activa `checkpoint_pending`. Entonces: emitir informe y ESPERAR decisión del usuario. Opciones: `resolve_checkpoint` (continuar), `reset` (limpiar/abortar) o parar.
+- **Veredicto explícito por bug:** `finalize` con PASS/PARTIAL/FAIL/UNVERIFIED. FAIL con el límite alcanzado ⇒ BLOQUEADO automático.
+- **Re-análisis tras cada fix:** correr `incremental_scan` (o `risk_scan` + `syntax_scan` sobre los archivos tocados) y comparar antes/después. Hallazgos NUEVOS ⇒ marcar `REGRESSION` y no cerrar.
+- **Informe determinístico:** `correction_gate(action="status")` devuelve el resumen (bugs por estado, contador, `next_action`). El informe de checkpoint se construye sobre ese estado, no improvisado.
+
 ## Dimensiones de auditoría
 1. sintaxis y código/config malformado
 2. imports, símbolos sin resolver y código muerto

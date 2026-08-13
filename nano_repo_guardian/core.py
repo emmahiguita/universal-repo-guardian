@@ -25,6 +25,7 @@ from .analysis import (
     inventory,
     verify,
 )
+from .correction import correction_gate
 from .fsio import is_text_candidate, iter_files, read_text, safe_root
 from .knowledge import apply_knowledge, knowledge_dir, load_knowledge, record_verified_outcome
 from .scanners import (
@@ -48,6 +49,7 @@ __all__ = [
     "apply_knowledge",
     "architecture_smells",
     "build_compatibility_matrix",
+    "correction_gate",
     "dead_code_scan",
     "deep_snapshot",
     "dependency_inventory",
