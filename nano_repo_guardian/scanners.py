@@ -325,12 +325,17 @@ def imports_audit(root: str | Path | None = None) -> dict[str, Any]:
         total_files += 1
         rel = str(p.relative_to(r))
         seen: dict[str, int] = {}
+        line_starts = [0]
+        pos = text.find("\n")
+        while pos != -1:
+            line_starts.append(pos + 1)
+            pos = text.find("\n", pos + 1)
         for m in pat.finditer(text):
             # normalizar: usar el grupo más relevante
             imp = next((g for g in m.groups() if g and g != "static"), "")
             if not imp:
                 continue
-            line_no = text.count("\n", 0, m.start()) + 1
+            line_no = _line_number(line_starts, m.start())
             if "*" in m.group(0).split()[-1] or imp.endswith("*"):
                 wildcards.append({"file": rel, "line": line_no, "import": imp,
                                   "status": "HYPOTHESIS_TO_VALIDATE", "severity": "P3",

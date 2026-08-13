@@ -18,7 +18,16 @@ from nano_repo_guardian.constants import BUILD_NAMES, LOG_RULES, SEVERITY_WEIGHT
 from nano_repo_guardian.constants import fingerprint as _fingerprint
 from nano_repo_guardian.fsio import iter_files, read_text, safe_root
 from nano_repo_guardian.knowledge import apply_knowledge, load_knowledge
-from nano_repo_guardian.scanners import architecture_smells, hotspot_scan, risk_scan, syntax_scan
+from nano_repo_guardian.scanners import (
+    android_manifest_audit,
+    architecture_smells,
+    dead_code_scan,
+    hotspot_scan,
+    imports_audit,
+    risk_scan,
+    syntax_scan,
+)
+from nano_repo_guardian.semantic import resource_ownership_scan
 
 
 def inventory(root: str | Path | None = None) -> dict[str, Any]:
@@ -262,7 +271,8 @@ def verify(check: str, root: str | Path | None = None, timeout: int = 180) -> di
 
 
 def deep_snapshot(root: str | Path | None = None) -> dict[str, Any]:
-    risks = apply_knowledge(risk_scan(root, max_findings=3000), root)
+    r = safe_root(root)
+    risks = apply_knowledge(risk_scan(r, max_findings=3000), r)
     return {
         "inventory": inventory(root),
         "compatibility": build_compatibility_matrix(root),
@@ -270,6 +280,10 @@ def deep_snapshot(root: str | Path | None = None) -> dict[str, Any]:
         "syntax": syntax_scan(root),
         "architecture_smells": architecture_smells(root),
         "hotspots": hotspot_scan(root),
+        "manifest_audit": android_manifest_audit(root),
+        "imports_audit": imports_audit(root),
+        "dead_code": dead_code_scan(root),
+        "resource_ownership": resource_ownership_scan(r),
         "risk_summary": dict(Counter(x["category"] for x in risks)),
         "severity_summary": dict(Counter(x["severity"] for x in risks)),
         "knowledge": load_knowledge(root),
